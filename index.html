@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repaso de Visión Artificial</title>
+<meta name="description" content="Laboratorios interactivos y simulacros para repasar Visión Artificial: cámara, píxeles, percepción, filtrado, morfología y más.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#eef2f4; --surface:#ffffff; --surface-2:#e3e9ed; --ink:#121a20; --muted:#55636d; --line:#cdd6dc;
+  --accent:#0b6e86; --accent-ink:#ffffff; --accent-soft:#d6ecf1; --warn:#8a5300; --warn-soft:#fbefd6;
+  --f-display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0c1115; --surface:#141b21; --surface-2:#1c252d; --ink:#e4ebf0; --muted:#94a4af; --line:#2b3741;
+  --accent:#5fc6dc; --accent-ink:#06171c; --accent-soft:#163039; --warn:#f0bb5a; --warn-soft:#3a2a0e; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0c1115; --surface:#141b21; --surface-2:#1c252d; --ink:#e4ebf0; --muted:#94a4af; --line:#2b3741;
+  --accent:#5fc6dc; --accent-ink:#06171c; --accent-soft:#163039; --warn:#f0bb5a; --warn-soft:#3a2a0e; color-scheme:dark }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--f-body)}
+.wrap{max-width:1100px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left,0px)) 60px max(16px,env(safe-area-inset-right,0px))}
+header{padding:44px 0 18px}
+h1{font:800 clamp(2rem,6vw,3.2rem)/1.02 var(--f-display);letter-spacing:-.025em;margin:0 0 12px;text-wrap:balance}
+h2{font:800 1.4rem/1.15 var(--f-display);margin:34px 0 4px}
+.lead{color:var(--muted);max-width:66ch;margin:0 0 14px;font-size:1.05rem}
+.aviso{background:var(--warn-soft);border-left:4px solid var(--warn);border-radius:8px;padding:12px 16px;max-width:760px;font-size:.95rem}
+.sub{color:var(--muted);margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+a.card{display:flex;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 18px 16px;color:inherit;text-decoration:none;transition:border-color .15s, transform .15s}
+a.card:hover{border-color:var(--accent);transform:translateY(-2px)}
+a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card h3{font:800 1.18rem/1.2 var(--f-display);margin:0}
+.card p{margin:0;color:var(--muted);font-size:.94rem}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto;padding-top:8px}
+.tags span{font:600 .66rem/1 var(--f-body);letter-spacing:.06em;text-transform:uppercase;border-radius:3px;padding:4px 6px;background:var(--accent-soft)}
+.card .go{font-weight:600;color:var(--accent);font-size:.9rem}
+.tips{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:10px}
+.tips div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:.93rem}
+.tips b{display:block;font-family:var(--f-display);font-size:1rem;margin-bottom:2px}
+footer{color:var(--muted);font-size:.82rem;margin-top:44px;border-top:1px solid var(--line);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Repaso de Visión Artificial</h1>
+  <p class="lead">Laboratorios interactivos, simulacros y ejercicios para preparar la solemne y el examen. Todo funciona en el navegador, también en el celular, sin instalar nada ni crear cuenta.</p>
+  <div class="aviso"><b>Material no oficial.</b> Lo hizo un alumno del ramo a partir de las clases y las diapositivas, para estudiar. Puede tener errores: ante la duda, manda el material del curso y lo que diga el profesor. Cada página indica de qué clase o diapositiva sale cada cosa.</div>
+</header>
+
+<h2>Teoría: tipo Solemne 1</h2>
+<p class="sub">Alternativas, combinadas y conceptos. Empieza por el simulacro para ver dónde estás.</p>
+<div class="grid">
+  <a class="card" href="simulacro-solemne1.html"><h3>Simulacro Solemne 1</h3><p>Prueba completa con formas aleatorias, alternativas combinadas a–e y la pregunta de desarrollo de aplicaciones por ingeniería. Al entregar explica cada respuesta.</p><div class="tags"><span>Prueba</span><span>Con reloj</span></div><span class="go">Rendir →</span></a>
+  <a class="card" href="camara.html"><h3>Meimei ante la cámara</h3><p>Cadena radiométrica, cuerpos ideales, ley de Snell, espectro, cámara oscura, iluminación y sensores CCD y CMOS.</p><div class="tags"><span>Formación de imagen</span></div><span class="go">Abrir →</span></a>
+  <a class="card" href="pixeles.html"><h3>Meimei en píxeles</h3><p>Qué es una imagen digital: grilla y matriz, bits y niveles de gris, canales RGB y pseudocolor.</p><div class="tags"><span>Imagen</span><span>Color</span></div><span class="go">Abrir →</span></a>
+  <a class="card" href="percepcion.html"><h3>Cómo ve Meimei</h3><p>Percepción subjetiva, selectiva y temporal, leyes de la Gestalt con ilusiones, umbral de Weber y los animales de la primera clase.</p><div class="tags"><span>Percepción</span><span>Biología</span></div><span class="go">Abrir →</span></a>
+</div>
+
+<h2>Procesamiento: filtros y morfología</h2>
+<p class="sub">Para entender qué hace cada operación sobre una foto real y practicar la cuenta a mano.</p>
+<div class="grid">
+  <a class="card" href="filtrado.html"><h3>Filtrado con Meimei</h3><p>Histograma, paso bajo, mediana, paso alto y dominio de la frecuencia con FFT. Una lupa hace la cuenta completa en cualquier píxel.</p><div class="tags"><span>Convolución</span><span>Frecuencia</span></div><span class="go">Abrir →</span></a>
+  <a class="card" href="morfologia.html"><h3>Morfología con Meimei</h3><p>Erosión, dilatación, apertura, cierre, gradiente y top hat, con elemento estructurante a elección y lupa por píxel.</p><div class="tags"><span>Morfología</span></div><span class="go">Abrir →</span></a>
+</div>
+
+<h2>Todo el ramo</h2>
+<p class="sub">Para el examen: materia de las dos solemnes y ejercicios infinitos.</p>
+<div class="grid">
+  <a class="card" href="biblia.html"><h3>Biblia de Visión Artificial</h3><p>Las dos solemnes en una página: materia, laboratorios, ejercicios generados, alternativas, tarjetas y simulacro.</p><div class="tags"><span>Solemne 1</span><span>Solemne 2</span></div><span class="go">Abrir →</span></a>
+  <a class="card" href="entrenador.html"><h3>Entrenador</h3><p>Convolución y morfología a mano con ejercicios nuevos cada vez, y un cuestionario de teoría con reloj opcional.</p><div class="tags"><span>Ejercicios</span><span>A mano</span></div><span class="go">Abrir →</span></a>
+</div>
+
+<h2>Cómo sacarles provecho</h2>
+<div class="tips">
+  <div><b>Ensaya con reloj</b>En el simulacro, usa todo el tiempo. En las combinadas, marca V o F en cada afirmación antes de mirar las alternativas.</div>
+  <div><b>Haz la cuenta tú primero</b>En los desafíos «A mano», calcula en papel con calculadora, como en la prueba, y recién después revisa.</div>
+  <div><b>Tu avance es tuyo</b>Los puntajes se guardan solo en tu navegador. Nadie más los ve.</div>
+</div>
+
+<footer>Fotos de Mei Mei que circulan en redes; la cuenta de su dueño es @toletole_meimei. Material de estudio sin fines comerciales.</footer>
+</div>
+</body>
+</html>

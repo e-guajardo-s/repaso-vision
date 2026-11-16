@@ -1,0 +1,2385 @@
+<!doctype html>
+<html lang="es">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<title>Biblia de Visión Artificial</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Cuaderno de laboratorio: riel de navegación a la izquierda, hoja de trabajo a la derecha.
+   Las matrices de píxeles son el motivo visual: cada celda se pinta con su intensidad real. */
+:root{
+  --bg:#f2f4f9; --surface:#ffffff; --surface-2:#e8ecf4; --ink:#131929; --muted:#57617b; --line:#cdd4e2;
+  --accent:#2346d3; --accent-ink:#ffffff; --accent-soft:#dde5fb;
+  --warn:#8f5400; --warn-soft:#fbeed2; --ok:#11703d; --ok-soft:#daf2e3; --bad:#b0251d; --bad-soft:#fbe0dd;
+  --f-display:"Archivo","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e121c; --surface:#161b28; --surface-2:#1f2638; --ink:#e6eaf4; --muted:#9aa5bf; --line:#30394f;
+  --accent:#8ea5ff; --accent-ink:#0a0f1f; --accent-soft:#222c52;
+  --warn:#f0b955; --warn-soft:#38290e; --ok:#6fd49b; --ok-soft:#133423; --bad:#ff9087; --bad-soft:#421f1c;
+  color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0e121c; --surface:#161b28; --surface-2:#1f2638; --ink:#e6eaf4; --muted:#9aa5bf; --line:#30394f;
+  --accent:#8ea5ff; --accent-ink:#0a0f1f; --accent-soft:#222c52;
+  --warn:#f0b955; --warn-soft:#38290e; --ok:#6fd49b; --ok-soft:#133423; --bad:#ff9087; --bad-soft:#421f1c;
+  color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.58 var(--f-body)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.app{display:grid;grid-template-columns:228px minmax(0,1fr);gap:36px;max-width:1220px;margin:0 auto;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* riel */
+.rail{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;max-height:100vh;overflow-y:auto;padding-block:26px}
+.brand{font:800 1.18rem/1.1 var(--f-display);font-stretch:112%;letter-spacing:-.01em;margin:0 0 4px}
+.brand small{display:block;font:500 .78rem/1.3 var(--f-body);color:var(--muted);letter-spacing:0;margin-top:5px}
+.ramp{display:flex;height:8px;margin:14px 0 18px;border:1px solid var(--line)}
+.ramp i{flex:1}
+.rail nav{display:flex;flex-direction:column;gap:2px}
+.rail .grp{font:600 .68rem/1 var(--f-body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px 10px}
+.rail a{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;color:var(--ink);text-decoration:none;font-weight:500;font-size:.94rem;white-space:nowrap}
+.rail a:hover{background:var(--surface-2)}
+.rail a[aria-current="page"]{background:var(--accent);color:var(--accent-ink)}
+.rail a .n{font:500 .72rem var(--f-mono);opacity:.75}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,td:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* hoja */
+.main{padding-block:30px 80px;min-width:0}
+.view{max-width:900px}
+.vh{margin-bottom:26px}
+.eyebrow{display:inline-block;font:600 .7rem/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);padding:5px 8px;border-radius:4px;margin-bottom:12px}
+h1{font:800 clamp(1.9rem,4.2vw,2.7rem)/1.04 var(--f-display);font-stretch:110%;letter-spacing:-.02em;margin:0 0 10px;text-wrap:balance}
+.lead{font-size:1.06rem;color:var(--muted);max-width:64ch;margin:0}
+h2{font:700 1.36rem/1.15 var(--f-display);font-stretch:106%;letter-spacing:-.01em;margin:0 0 12px;text-wrap:balance}
+h3{font:600 1.02rem/1.25 var(--f-body);margin:20px 0 6px}
+.sec{border-top:1px solid var(--line);padding-top:24px;margin-top:30px}
+.sec > p,.sec > ul,.sec > ol{max-width:68ch}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:22px}
+li{margin-bottom:5px}
+strong{font-weight:600}
+code,.m{font-family:var(--f-mono);font-size:.92em}
+.src{display:inline-block;font:500 .7rem/1 var(--f-mono);color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:3px 5px;margin-left:4px;white-space:nowrap;vertical-align:middle}
+.ojo,.nota{border-radius:6px;padding:12px 14px;margin:14px 0;max-width:72ch}
+.ojo{background:var(--warn-soft);color:var(--ink);border-left:4px solid var(--warn)}
+.ojo b:first-child{color:var(--warn)}
+.nota{background:var(--surface-2)}
+.scroll{overflow-x:auto;max-width:100%}
+table.t{border-collapse:collapse;width:100%;font-size:.95rem;margin:10px 0 14px}
+table.t th,table.t td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.t th{font:600 .74rem/1.2 var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+pre.mx{font:500 .95rem/1.5 var(--f-mono);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px;margin:10px 0 14px;overflow-x:auto;width:fit-content;max-width:100%}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+.cols > *{min-width:0}
+.formula{font:500 1.02rem/1.5 var(--f-mono);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 14px;margin:10px 0 14px;width:fit-content;max-width:100%;overflow-x:auto}
+
+/* laboratorio */
+.lab{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;margin:18px 0}
+.lab-h{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:12px}
+.lab-h b{font:700 1.02rem var(--f-display);font-stretch:106%}
+.lab-h span{font:500 .72rem var(--f-mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.row{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;margin:10px 0}
+.row > *{min-width:0}
+.field{display:flex;flex-direction:column;gap:4px;font-size:.84rem;color:var(--muted);font-weight:500}
+.field input[type=number],.field select,.field input[type=text]{font:500 1rem var(--f-mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0;max-width:100%}
+.field input[type=number]{width:108px}
+.field input[type=range]{width:min(220px,60vw);accent-color:var(--accent)}
+.field output{font:600 .92rem var(--f-mono);color:var(--ink)}
+.field.good select,.field.good input{border-color:var(--ok);background:var(--ok-soft)}
+.field.wrong select,.field.wrong input{border-color:var(--bad);background:var(--bad-soft)}
+.btn{font:600 .92rem var(--f-body);color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:8px 14px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
+.btn:disabled{opacity:.5;cursor:default}
+.stage{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;margin:12px 0}
+.stage > figure{margin:0;min-width:0;max-width:100%}
+figcaption{font:500 .76rem var(--f-mono);color:var(--muted);margin-bottom:6px;letter-spacing:.03em}
+table.mxg{border-collapse:collapse;font:500 .92rem var(--f-mono);font-variant-numeric:tabular-nums}
+table.mxg td{border:1px solid var(--line);min-width:44px;height:38px;text-align:center;padding:2px 5px;background:var(--bg)}
+table.mxg td.hl{outline:3px solid var(--accent);outline-offset:-3px}
+table.mxg td.sel{box-shadow:inset 0 0 0 3px var(--warn)}
+table.mxg td[tabindex]{cursor:pointer}
+table.mxg input{width:52px;font:500 .92rem var(--f-mono);text-align:center;color:var(--ink);background:transparent;border:0;padding:4px 0}
+table.mxg td.good{background:var(--ok-soft)} table.mxg td.wrong{background:var(--bad-soft)}
+table.bin{border-collapse:collapse;font:600 .82rem var(--f-mono)}
+table.bin td{width:30px;height:30px;text-align:center;border:1px solid #8a93a8;padding:0;user-select:none}
+table.bin td.on{background:#f3f5fa;color:#10151f} table.bin td.off{background:#0c1018;color:#7d879c}
+table.bin.edit td{cursor:pointer}
+table.bin td.d-on{box-shadow:inset 0 0 0 3px #1fa860} table.bin td.d-off{box-shadow:inset 0 0 0 3px #e0473d}
+canvas{display:block;max-width:100%;border:1px solid var(--line);border-radius:4px;background:var(--surface)}
+canvas.px{image-rendering:pixelated;width:240px}
+.kv{font:500 .9rem/1.6 var(--f-mono);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin:10px 0;overflow-x:auto}
+.kv b{color:var(--accent)}
+.verdict{border-radius:6px;padding:12px 14px;margin-top:12px;font-size:.95rem}
+.verdict.ok{background:var(--ok-soft);border-left:4px solid var(--ok)}
+.verdict.bad{background:var(--bad-soft);border-left:4px solid var(--bad)}
+.verdict h4{margin:0 0 6px;font:700 1rem var(--f-display)}
+.verdict .stage{margin:8px 0 0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.chip{font:500 .92rem var(--f-body);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:7px 13px;cursor:pointer;color:var(--ink)}
+.chip.sel{background:var(--accent-soft);border-color:var(--accent)}
+.chip b{font-family:var(--f-mono);color:var(--accent);margin-right:6px}
+
+/* inicio */
+.count{display:flex;align-items:baseline;gap:10px;margin:18px 0 0}
+.count b{font:800 3.2rem/1 var(--f-display);font-stretch:118%;color:var(--accent);font-variant-numeric:tabular-nums}
+.count span{color:var(--muted)}
+.todo{list-style:none;padding:0;max-width:none}
+.todo li{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line);margin:0}
+.todo input{margin-top:5px;accent-color:var(--accent);width:17px;height:17px;flex:none}
+.todo a{font-weight:600}
+.prog{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:10px}
+.prog div.pc{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.prog small{display:block;color:var(--muted);font-size:.78rem}
+.prog b{font:600 1.15rem var(--f-mono);font-variant-numeric:tabular-nums}
+.bar{height:5px;background:var(--surface-2);border-radius:3px;margin-top:7px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok)}
+
+/* alternativas, tarjetas, simulacro */
+.q{font:600 1.12rem/1.4 var(--f-body);margin:6px 0 14px;max-width:62ch;text-wrap:balance}
+.opts{display:grid;gap:8px;max-width:680px}
+.opt{text-align:left;font:400 1rem/1.4 var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:11px 13px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.right{background:var(--ok-soft);border-color:var(--ok)} .opt.miss{background:var(--bad-soft);border-color:var(--bad)}
+.meter{display:flex;justify-content:space-between;gap:12px;font:500 .8rem var(--f-mono);color:var(--muted);margin-bottom:6px}
+.timebar{height:4px;background:var(--surface-2);border-radius:2px;overflow:hidden;margin-bottom:12px}
+.timebar i{display:block;height:100%;background:var(--accent);width:100%}
+.card3d{width:100%;max-width:620px;min-height:190px;text-align:left;font:500 1.12rem/1.45 var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:22px;cursor:pointer;display:block}
+.card3d small{display:block;font:600 .7rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.card3d.back{background:var(--accent-soft);border-color:var(--accent)}
+.clock{position:sticky;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:4;width:fit-content;margin-left:auto;font:600 1rem var(--f-mono);background:var(--ink);color:var(--bg);border-radius:6px;padding:6px 12px;font-variant-numeric:tabular-nums}
+fieldset.sq{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:0 0 12px;min-width:0}
+fieldset.sq legend{font-weight:600;padding:0 6px;max-width:100%}
+fieldset.sq label{display:flex;gap:8px;align-items:flex-start;padding:5px 0;cursor:pointer}
+fieldset.sq input{margin-top:5px;accent-color:var(--accent)}
+fieldset.sq label.right{color:var(--ok);font-weight:600} fieldset.sq label.miss{color:var(--bad);text-decoration:line-through}
+fieldset.sq .why{font-size:.88rem;color:var(--muted);margin:6px 0 0}
+
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);gap:0}
+  .rail{z-index:6;background:var(--bg);max-height:none;overflow:visible;padding-block:12px 0;border-bottom:1px solid var(--line)}
+  .brand small,.ramp,.rail .grp{display:none}
+  .rail nav{flex-direction:row;overflow-x:auto;gap:4px;padding:8px 0 10px}
+  .rail a .n{display:none}
+  .main{padding-block:22px 60px}
+  table.bin td{width:26px;height:26px}
+  table.mxg td{min-width:38px}
+}
+@media (prefers-reduced-motion:reduce){ *{scroll-behavior:auto!important;transition:none!important} }
+</style>
+
+<div class="app">
+<aside class="rail">
+  <p class="brand">Biblia de Visión Artificial<small>Solemne 1 + Solemne 2 · examen 27 nov 2026</small></p>
+  <div class="ramp" id="ramp" aria-hidden="true"></div>
+  <nav id="nav" aria-label="Secciones">
+    <a href="#inicio">Inicio</a>
+    <span class="grp">Solemne 1</span>
+    <a href="#teoria-s1">Teoría completa <span class="n">S1</span></a>
+    <span class="grp">Solemne 2 · ejercicios</span>
+    <a href="#convolucion">Convolución <span class="n">E1</span></a>
+    <a href="#frecuencia">Frecuencia <span class="n">E2</span></a>
+    <a href="#morfologia">Morfología <span class="n">E3</span></a>
+    <span class="grp">Solemne 2 · teoría</span>
+    <a href="#bordes">Bordes</a>
+    <a href="#filtros">Filtros y ruido</a>
+    <a href="#binarizacion">Binarización</a>
+    <a href="#deteccion">Detección</a>
+    <span class="grp">Practicar</span>
+    <a href="#alternativas">Alternativas</a>
+    <a href="#tarjetas">Tarjetas</a>
+    <a href="#simulacro">Simulacro</a>
+  </nav>
+</aside>
+
+<main class="main">
+
+<!-- ===================== INICIO ===================== -->
+<section class="view" id="v-inicio">
+  <header class="vh">
+    <span class="eyebrow">Examen · viernes 27 nov 2026</span>
+    <h1>Todo lo que entra, en un solo lugar</h1>
+    <p class="lead">Las dos solemnes juntas, ordenadas según lo que el profesor dijo en clases que entraba. Cada tema trae la materia lista para pasar al cuaderno, un laboratorio para verla funcionar y ejercicios que se generan nuevos cada vez.</p>
+    <div class="count"><b id="dias">13</b><span id="dias-txt">días para el examen</span></div>
+  </header>
+
+  <div class="sec">
+    <h2>Qué entra, según el profe</h2>
+    <div class="cols">
+      <div>
+        <h3>Solemne 1 — pura teoría</h3>
+        <p>Alternativas, sin cálculo. Él la describió como de "carácter teórico": qué es la luz, qué es el color, qué es visión artificial. <span class="src">Clase 1</span></p>
+        <p>La materia son <strong>las diapositivas 1 a 6</strong>: "la teoría para la solemne son estas seis diapositivas". <span class="src">Clase 5</span></p>
+        <ul>
+          <li>Imagen, píxel, bits, resolución, histograma</li>
+          <li>Percepción: subjetiva, selectiva, temporal</li>
+          <li>Luz y espectro electromagnético</li>
+          <li>Cadena radiométrica y la materia</li>
+          <li>Tipos de cuerpos, reflexión, refracción, Snell</li>
+          <li>Sensores CCD y CMOS</li>
+          <li>Máscara de convolución y morfología, solo el concepto</li>
+          <li>Aplicaciones por ingeniería, <strong>literal</strong> de la diapositiva 3</li>
+        </ul>
+        <p><a href="#teoria-s1">Ir a la teoría de la Solemne 1 →</a></p>
+      </div>
+      <div>
+        <h3>Solemne 2 — mitad ejercicios, mitad teoría</h3>
+        <p>"Dividida en dos partes, teórico y práctico": alternativas sobre los filtros, más "las tres funciones matemáticas que hay que resolver". <span class="src">Clase 9</span></p>
+        <ol>
+          <li><a href="#convolucion">Máscara de convolución</a> con escalamiento a 8 bits</li>
+          <li><a href="#frecuencia">Frecuencia</a>: "básicamente le tengo que poner qué frecuencia es" <span class="src">Clase 12</span></li>
+          <li><a href="#morfologia">Morfología</a> sobre matriz binaria</li>
+        </ol>
+        <p>Teoría: <a href="#bordes">bordes</a>, <a href="#filtros">filtros y ruido</a>, <a href="#binarizacion">binarización</a>, apertura y cierre, <a href="#deteccion">Hough, blobs y Harris</a>.</p>
+        <p>"La prueba es fácil, pero es larga, así que te tenéis que concentrar." <span class="src">Clase 12</span></p>
+      </div>
+    </div>
+    <div class="ojo"><b>Fuera del examen:</b> SIFT y ORB (los excluyó en las Clases 10 y 11), el código y los talleres. No gastes tiempo ahí.</div>
+  </div>
+
+  <div class="sec">
+    <h2>Los seis errores que el profe dijo que cometen</h2>
+    <ol>
+      <li><strong>No definir fondo y figura</strong> antes de erosionar o dilatar. Hay que preguntar qué es el 1 y qué es el 0. <span class="src">Clase 10</span></li>
+      <li><strong>Dividir por cero</strong> al normalizar un kernel de bordes: Sobel y Prewitt suman cero. <span class="src">Clase 8</span></li>
+      <li><strong>Saltarse el escalamiento</strong> cuando quedan negativos o valores sobre 255. <span class="src">Clase 4</span></li>
+      <li><strong>Confundir Sobel con Prewitt.</strong> La diferencia es el peso 2 central de Sobel. Los dos son 3×3. <span class="src">Clase 12</span></li>
+      <li><strong>Usar gaussiano contra sal y pimienta.</strong> Va mediana. <span class="src">Clase 9</span></li>
+      <li><strong>Confundir apertura con cierre.</strong> "Cuando abre no sella." <span class="src">Clase 12</span></li>
+    </ol>
+    <h3>Avisos textuales</h3>
+    <ul>
+      <li>Las cuatro cosas que hace la materia con un rayo: "anótenla como pregunta de prueba". <span class="src">Clase 2</span></li>
+      <li>El rango de la luz visible: "dos preguntas de prueba". <span class="src">Clase 2</span></li>
+      <li>La división por cero del kernel de bordes: "podría ser parte de la pregunta de la solemne o el ejercicio". <span class="src">Clase 8</span></li>
+      <li>La frecuencia a partir del período: "esto es casi pregunta de prueba". <span class="src">Clase 4</span></li>
+      <li>El peso 2 central de Sobel: "hay varias preguntas con eso". <span class="src">Clase 12</span></li>
+    </ul>
+    <h3>Reglas de sala</h3>
+    <p>Calculadora sí, celular no. No se entra después de que salga el primero que entregó. <span class="src">Clase 12</span></p>
+  </div>
+
+  <div class="sec">
+    <h2>Ruta para una sesión densa</h2>
+    <ul class="todo" id="todo">
+      <li><input type="checkbox" id="td1"><label for="td1"><a href="#teoria-s1">Teoría S1</a>: pasar al cuaderno las nueve secciones y hacer los mini-laboratorios. Las aplicaciones por ingeniería, hasta escribir las 22 sin mirar.</label></li>
+      <li><input type="checkbox" id="td2"><label for="td2"><a href="#convolucion">Convolución</a>: recorrer el paso a paso y resolver tres ejercicios seguidos sin error.</label></li>
+      <li><input type="checkbox" id="td3"><label for="td3"><a href="#frecuencia">Frecuencia</a>: cinco ejercicios, alternando período y tipo de transición.</label></li>
+      <li><input type="checkbox" id="td4"><label for="td4"><a href="#morfologia">Morfología</a>: laboratorio con el ejemplo del agujero y la mota, después tres ejercicios.</label></li>
+      <li><input type="checkbox" id="td5"><label for="td5">Teoría S2: <a href="#bordes">bordes</a>, <a href="#filtros">filtros</a>, <a href="#binarizacion">binarización</a> y <a href="#deteccion">detección</a>, cada una con su demostración.</label></li>
+      <li><input type="checkbox" id="td6"><label for="td6"><a href="#alternativas">Alternativas</a>: una ronda de S1 y una de S2. <a href="#tarjetas">Tarjetas</a> para lo que falle.</label></li>
+      <li><input type="checkbox" id="td7"><label for="td7"><a href="#simulacro">Simulacro</a> completo con reloj.</label></li>
+    </ul>
+  </div>
+
+  <div class="sec">
+    <h2>Tu avance en este navegador</h2>
+    <p>Aciertos sobre intentos por tema. Se guarda solo en este navegador.</p>
+    <div class="prog" id="prog"></div>
+  </div>
+</section>
+
+<!-- ===================== TEORÍA S1 ===================== -->
+<section class="view" id="v-teoria-s1" hidden>
+  <header class="vh">
+    <span class="eyebrow">Solemne 1 · teoría</span>
+    <h1>Teoría de la Solemne 1</h1>
+    <p class="lead">Fue 100% alternativas, 15 preguntas, sin cálculo. Es memoria: conviene repasarla corto y muchas veces. Después de leer, pasa por <a href="#tarjetas">Tarjetas</a> y <a href="#alternativas">Alternativas</a>.</p>
+  </header>
+
+  <div class="sec">
+    <h2>1. Imagen, píxel y procesamiento</h2>
+    <ul>
+      <li><strong>Imagen</strong> viene del latín <em>imago</em>: imitar, una <strong>representación de la realidad</strong>. <span class="src">Clase 1</span></li>
+      <li>En lo concreto es una <strong>matriz de píxeles</strong> de x por y, una matriz de datos, en color o en escala de grises. <span class="src">Clase 1</span></li>
+      <li><strong>No existe el "blanco y negro".</strong> Si fuera blanco y negro habría solo 1 y 0: eso es una imagen <strong>binaria</strong>. Lo otro es <strong>escala de grises</strong>. <span class="src">Clase 1</span></li>
+      <li><strong>Procesamiento de imágenes:</strong> conceptos y métodos matemáticos, un algoritmo digital, para representar, intervenir y modificar la información extraída de la realidad. <span class="src">Clase 1</span></li>
+      <li>Una imagen no es solo una cámara: es "algo que emite una energía y recupera lo que devuelve esa energía" después de tocar los materiales. <span class="src">Clase 1</span></li>
+      <li><strong>Lena Söderberg</strong> es la imagen de prueba histórica; aparece en todos los algoritmos. <span class="src">Clase 1</span></li>
+    </ul>
+    <h3>Lo que guarda cada píxel</h3>
+    <ul>
+      <li>Cada píxel guarda una <strong>intensidad</strong>. <span class="src">Clase 3</span></li>
+      <li>Con <strong>8 bits</strong> hay <strong>256 intensidades</strong>: de <strong>0 (negro)</strong> a <strong>255 (blanco)</strong>, "porque el cero cuenta". <span class="src">Clase 3</span></li>
+      <li><strong>Resolución</strong> = m × n, la cantidad de píxeles. No significa que se vea mejor: "es una foto más grande, no más". <span class="src">Clase 3</span></li>
+      <li><strong>Histograma</strong> = el conteo de píxeles por cada intensidad. Un histograma más repartido es <strong>mayor contraste</strong>. Se puede ecualizar o sacar el negativo. <span class="src">Clases 3 y 5</span></li>
+      <li>En color es lo mismo repetido en <strong>tres canales</strong>: rojo, verde y azul, cada uno de 0 a 255. <span class="src">Clase 5</span></li>
+      <li><strong>Pseudocolor:</strong> asignar un color a cada rango de intensidad de grises. Se hace con umbrales (<em>threshold</em>); es lo que muestran las cámaras térmicas. <span class="src">Clase 5</span></li>
+    </ul>
+    <div class="lab">
+      <div class="lab-h"><b>Bits y niveles de gris</b><span>mini-laboratorio</span></div>
+      <div class="row"><label class="field">Bits por píxel <input type="range" id="bits" min="1" max="8" value="8"><output id="bits-out"></output></label></div>
+      <canvas id="bits-cv" width="512" height="48" style="width:100%;height:48px"></canvas>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>2. Percepción humana</h2>
+    <p>La percepción es un <strong>proceso cognitivo</strong>: no es recibir datos, es interpretarlos. Tres características, con el nombre exacto: <span class="src">Clase 1 · percepcion.pdf</span></p>
+    <div class="scroll"><table class="t">
+      <tr><th>Característica</th><th>Qué significa</th></tr>
+      <tr><td><strong>Subjetiva</strong></td><td>Depende de la experiencia de cada uno.</td></tr>
+      <tr><td><strong>Selectiva</strong></td><td>Se percibe según intereses, actitudes, valores y necesidades. No se ven todos los árboles del bosque.</td></tr>
+      <tr><td><strong>Temporal</strong></td><td>Cambia con el tiempo. Lo que se ve hoy no es lo que se veía de chico.</td></tr>
+    </table></div>
+  </div>
+
+  <div class="sec">
+    <h2>3. Luz y espectro electromagnético</h2>
+    <ul>
+      <li><strong>Luz</strong>, dicha como humano: la <strong>radiación electromagnética que el ojo ve</strong>, un espectro muy pequeño del total. <span class="src">Clase 1</span></li>
+      <li><strong>Luz visible: de 400 a 700 nanómetros.</strong> Ahí está el arcoíris de siete colores. <span class="src">Clase 2</span></li>
+      <li>Orden dentro del visible, de menor a mayor longitud de onda: violeta, azul, verde, amarillo, naranjo, rojo.</li>
+      <li>Bajo los 400 nm: <strong>ultravioleta</strong> (sirve para ver las marcas de los billetes). Sobre los 700 nm: <strong>infrarrojo</strong>, que agita las partículas y produce calor. <span class="src">Clase 1</span></li>
+      <li>Más allá: rayos X, rayos gamma, rayos cósmicos, microondas, radio y radar. <span class="src">Clases 1 y 2</span></li>
+    </ul>
+    <div class="ojo"><b>Ojo:</b> en tus apuntes hay dos versiones del límite superior. En la Clase 1 dijo "entre los 400 y los 750 nanómetros"; en la Clase 2, "entre 700 y 400", y ahí avisó que eran "dos preguntas de prueba". Si la alternativa dice 400–700, es esa.</div>
+    <div class="lab">
+      <div class="lab-h"><b>Dónde cae cada longitud de onda</b><span>mini-laboratorio</span></div>
+      <div class="row"><label class="field">Longitud de onda <input type="range" id="nm" min="250" max="850" value="550"><output id="nm-out"></output></label></div>
+      <canvas id="nm-cv" width="600" height="56" style="width:100%;height:56px"></canvas>
+      <p style="font-size:.85rem;color:var(--muted);margin:8px 0 0">Los cortes entre un color y otro son aproximados; tus apuntes solo dan el orden y los dos límites.</p>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>4. Cadena radiométrica</h2>
+    <p>Es "todo el viaje que tiene la energía". El profe habla de energía y no de luz, porque pueden ser rayos X u otra cosa. <span class="src">Clase 1</span></p>
+    <pre class="mx">1. FUENTE DE ENERGÍA → 2. MEDIO → 3. MATERIA (interacción) → 4. SENSOR</pre>
+    <ol>
+      <li><strong>Fuente de energía.</strong> "Lo primero es la energía": de dónde nace. Ampolleta, sol, láser, pantalla. <span class="src">Clase 6</span></li>
+      <li><strong>Medio.</strong> Por dónde se transmite. Importa: alta temperatura, partículas, bajo el agua o en el espacio cambian el resultado. <span class="src">Clase 2</span></li>
+      <li><strong>Materia.</strong> El objeto de la escena y lo que le hace a la energía.</li>
+      <li><strong>Sensor.</strong> La energía vuelve a pasar por el medio y se detecta. <span class="src">Clase 2</span></li>
+    </ol>
+    <p>En una escena el rebote es <strong>múltiple</strong>: casi nunca hay un solo foco. <span class="src">Clase 2</span></p>
+    <div class="lab">
+      <div class="lab-h"><b>Ordena la cadena</b><span>ejercicio</span></div>
+      <p style="margin:0 0 6px">Toca las etapas en el orden en que viaja la energía.</p>
+      <div id="cadena"></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>5. Qué hace la materia, y los cuatro cuerpos</h2>
+    <p>Un rayo incidente trae todos los colores. La materia puede: <span class="src">Clase 2 · "anótenla como pregunta de prueba"</span></p>
+    <div class="scroll"><table class="t">
+      <tr><th>Acción</th><th>Qué pasa con la energía</th></tr>
+      <tr><td><strong>Absorber</strong></td><td>Se la queda.</td></tr>
+      <tr><td><strong>Transmitir</strong></td><td>La deja pasar.</td></tr>
+      <tr><td><strong>Emitir</strong></td><td>Genera energía propia.</td></tr>
+      <tr><td><strong>Reflejar</strong></td><td>La rebota.</td></tr>
+    </table></div>
+    <h3>Los cuerpos ideales</h3>
+    <div class="scroll"><table class="t">
+      <tr><th>Cuerpo</th><th>Comportamiento</th></tr>
+      <tr><td><strong>Cuerpo negro</strong></td><td>Toda la energía es <strong>absorbida</strong>.</td></tr>
+      <tr><td><strong>Ventana ideal</strong></td><td>Toda la energía es <strong>transmitida</strong>: la luz atraviesa sin atenuarse y el vidrio no emite nada propio.</td></tr>
+      <tr><td><strong>Cuerpo opaco</strong></td><td>La energía <strong>no lo atraviesa</strong>: toda es emitida o reflejada.</td></tr>
+      <tr><td><strong>Espejo</strong></td><td>Toda la energía es <strong>reflejada</strong>.</td></tr>
+    </table></div>
+    <p>Ninguno existe en la vida real: son modelos. <span class="src">Clase 2</span></p>
+    <div class="lab">
+      <div class="lab-h"><b>Un rayo contra cada cuerpo</b><span>mini-laboratorio</span></div>
+      <div class="row" id="cuerpos-btn"></div>
+      <canvas id="cuerpos-cv" width="560" height="220" style="width:100%;max-width:560px"></canvas>
+      <div class="kv" id="cuerpos-txt"></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>6. Reflexión, refracción y ley de Snell</h2>
+    <ul>
+      <li><strong>Reflexión:</strong> la luz rebota y vuelve al mismo medio.</li>
+      <li><strong>Refracción:</strong> la luz <strong>cambia de medio</strong> y al hacerlo cambia su ángulo: del incidente al refractado. "Se refracta, no se refleja." El ejemplo del profe es el lápiz o la bombilla metida en un vaso. <span class="src">Clase 2</span></li>
+      <li><strong>Material subsuperficial:</strong> gomas donde la luz queda rebotando por dentro; se ve brillante sin serlo. <span class="src">Clase 2</span></li>
+    </ul>
+    <div class="formula">n₁ · sen(θ₁) = n₂ · sen(θ₂)</div>
+    <p><span class="m">n</span> es el índice de refracción de cada medio, <span class="m">θ₁</span> el ángulo incidente y <span class="m">θ₂</span> el refractado, medidos contra la normal.</p>
+    <div class="lab">
+      <div class="lab-h"><b>El rayo al cambiar de medio</b><span>mini-laboratorio</span></div>
+      <div class="row">
+        <label class="field">n₁ (arriba) <input type="range" id="sn1" min="100" max="200" value="100"><output id="sn1o"></output></label>
+        <label class="field">n₂ (abajo) <input type="range" id="sn2" min="100" max="200" value="133"><output id="sn2o"></output></label>
+        <label class="field">Ángulo incidente θ₁ <input type="range" id="sth" min="0" max="85" value="45"><output id="stho"></output></label>
+      </div>
+      <canvas id="snell-cv" width="560" height="300" style="width:100%;max-width:560px"></canvas>
+      <div class="kv" id="snell-txt"></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>7. Sensores: CCD contra CMOS</h2>
+    <p>Después del diafragma, el lente y el filtro, la luz llega a uno de dos tipos de sensor. <span class="src">Clase 2</span></p>
+    <div class="scroll"><table class="t">
+      <tr><th></th><th>CCD</th><th>CMOS</th></tr>
+      <tr><td>Calidad de imagen</td><td><strong>Mejor</strong></td><td>Menor</td></tr>
+      <tr><td>Dónde se usa</td><td>Cámaras profesionales y réflex</td><td>Celulares y cámaras de consumo</td></tr>
+      <tr><td>Color</td><td><strong>Un sensor por cada color</strong> en cada celda: rojo, verde y azul</td><td>Un solo sensor con filtro de color</td></tr>
+      <tr><td>Consumo y costo</td><td>Más alto</td><td>Más bajo</td></tr>
+    </table></div>
+    <p>La explicación del profe: en el CCD cada cuadrícula tiene <strong>tres fotorreceptores</strong>, uno por color, y por eso determina el color con mayor precisión. <span class="src">Clase 2</span></p>
+  </div>
+
+  <div class="sec">
+    <h2>8. Convolución y morfología, solo el concepto</h2>
+    <p>En la Solemne 1 esto se preguntó sin calcular. Los cálculos son de la Solemne 2.</p>
+    <ul>
+      <li><strong>Máscara de convolución:</strong> "un proceso matemático que hace modificaciones de la intensidad de los píxeles desde una imagen origen a una imagen destino". <span class="src">Clase 4</span></li>
+      <li>Tiene que ser <strong>impar</strong> para tener un <strong>punto de pivote</strong>: así se sabe qué píxel se está transformando. <span class="src">Clase 4</span></li>
+      <li>Mientras <strong>más grande</strong> la máscara, <strong>más potente</strong> el efecto. <span class="src">Clase 4</span></li>
+      <li><strong>Filtros morfológicos</strong> son cuatro: dilatación, erosión, apertura y cierre. <span class="src">Clase 5</span></li>
+      <li><strong>Dilatar</strong> es expandir el píxel. El dicho del profe para la vecindad: "dime con quién andas y te diré quién eres". <span class="src">Clase 5</span></li>
+    </ul>
+  </div>
+
+  <div class="sec">
+    <h2>9. Aplicaciones por ingeniería</h2>
+    <p>La lámina "Unidad 02.1: Aplicaciones" trae 22 aplicaciones: 17 repartidas en cinco ingenierías y 5 en áreas aparte (biología/geología/meteorología/astronomía, forense, medicina, microscopía y minería). La pauta de la Solemne 1 trae las mismas 22, numeradas en este orden. <span class="src">Diapositivas 3 y 5</span></p>
+    <div class="ojo"><b>Literal o nada.</b> En la Solemne 1 el profe descontó puntos por aplicaciones inventadas. Se responde con estas, con el nombre de la ingeniería tal como está en la lámina.</div>
+    <div class="scroll"><table class="t" id="apps-table"></table></div>
+    <p style="font-size:.92rem;color:var(--muted)">En la diapositiva 3 hay tres más que no entraron en la pauta: "Detección" (Automatización y Robótica), "Sistema de visión artificial para evitar accidentes con maquinarias" (Seguridad y Prevención de Riesgos) e "Impresión – Control de texto escrito – OCR", como área aparte junto a forense y medicina.</p>
+    <div class="lab" id="apps-game"></div>
+  </div>
+
+  <div class="sec">
+    <h2>Checklist de memoria</h2>
+    <ul>
+      <li>Las tres características de la percepción, con su nombre exacto</li>
+      <li>Las cuatro etapas de la cadena radiométrica, en orden</li>
+      <li>Las cuatro cosas que hace la materia con un rayo incidente</li>
+      <li>Los cuatro cuerpos y qué hace cada uno</li>
+      <li>La fórmula de Snell y qué es cada término</li>
+      <li>Tres diferencias entre CCD y CMOS</li>
+      <li>El rango del visible en nanómetros, y qué hay a cada lado</li>
+      <li>Por qué no existe el "blanco y negro"</li>
+      <li>Qué son bits, resolución, histograma y pseudocolor</li>
+      <li>Las cinco ingenierías de la lámina de aplicaciones y sus 22 aplicaciones, literal</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== CONVOLUCIÓN ===================== -->
+<section class="view" id="v-convolucion" hidden>
+  <header class="vh">
+    <span class="eyebrow">Solemne 2 · ejercicio 1</span>
+    <h1>Máscara de convolución y escalamiento a 8 bits</h1>
+    <p class="lead">"Les voy a pasar una máscara llena de números, ustedes hacen el proceso y dan el resultado." Es el primer ejercicio de desarrollo. <span class="src">Clase 4</span></p>
+  </header>
+
+  <div class="sec">
+    <h2>1. Qué es</h2>
+    <ul>
+      <li>Una <strong>máscara de convolución</strong> (kernel, núcleo) es una matriz chica que se desliza sobre la imagen.</li>
+      <li>En cada posición se multiplica <strong>casilla por casilla</strong> con el vecindario y se <strong>suman</strong> todos los productos.</li>
+      <li>El resultado reemplaza al <strong>píxel pivote</strong>, el del centro. Por eso las máscaras son <strong>impares</strong>: 3×3, 5×5, 7×7. <span class="src">Clase 4</span></li>
+      <li>Cambiando solo los números de adentro, la máscara hace otro proceso: una difumina, otra resalta bordes. <span class="src">Clase 4</span></li>
+    </ul>
+  </div>
+
+  <div class="sec">
+    <h2>2. La norma</h2>
+    <p><strong>Norma = suma de todos los coeficientes.</strong> Se divide el resultado por la norma para que la imagen no cambie de brillo.</p>
+    <div class="cols">
+      <div><pre class="mx"> 1  2  1
+ 2  4  2     suma = 16  →  × 1/16
+ 1  2  1</pre><p>Gaussiano 3×3.</p></div>
+      <div><pre class="mx">-1  0  1
+-2  0  2     suma = 0   →  no se divide
+-1  0  1</pre><p>Sobel: kernel de bordes.</p></div>
+    </div>
+    <div class="ojo"><b>El caso trampa:</b> los kernels de borde suman cero. Dividir por la norma sería dividir por cero. El profe: "¿por cuánto se divide? Se dividiría por cero… podría ser parte de la pregunta de la solemne o el ejercicio de la solemne 2". Si el enunciado pide normalizar un kernel de bordes, la respuesta es que no se puede. <span class="src">Clase 8</span></div>
+  </div>
+
+  <div class="sec">
+    <h2>3. El procedimiento</h2>
+    <ol>
+      <li>Ubicar el <strong>pivote</strong> sobre el píxel a transformar.</li>
+      <li>Multiplicar cada coeficiente por el píxel que tiene debajo.</li>
+      <li><strong>Sumar</strong> todos los productos.</li>
+      <li>Calcular la <strong>norma</strong>. Si es distinta de cero, dividir. Si es cero, no.</li>
+      <li>Repetir para todos los píxeles y armar la <strong>matriz resultante completa</strong>. Los píxeles del borde no tienen vecindario completo: de una imagen 5×5 salen 3×3 resultados.</li>
+      <li>Revisar el rango. Si hay <strong>negativos o valores sobre 255</strong>, escalar.</li>
+    </ol>
+  </div>
+
+  <div class="sec">
+    <h2>4. El escalamiento</h2>
+    <p>Así lo hizo el profe en la pizarra: con <strong>toda la matriz definitiva</strong> lista, "busco el menor" y "el mayor". <span class="src">Clase 4</span></p>
+    <ol>
+      <li><strong>Desplazar:</strong> restar el mínimo a todos, "para que esté el cero".</li>
+      <li><strong>Regla de tres:</strong> el máximo desplazado vale 255; cada valor se multiplica por 255 y se divide por ese máximo.</li>
+      <li><strong>Redondear.</strong> "Aquí siempre vamos a redondear."</li>
+    </ol>
+    <div class="formula">nuevo = (valor − mín) × 255 / (máx − mín)</div>
+    <p>Su ejemplo: si 1642 es 255, entonces 322 → 50, 277 → 43 y 447 → 69. <span class="src">Clase 4</span></p>
+    <p>La versión general, que sirve para cualquier escalado de sensores o instrumentación:</p>
+    <div class="formula">nuevo = mín_des + (valor − mín_orig) / (máx_orig − mín_orig) × (máx_des − mín_des)</div>
+  </div>
+
+  <div class="lab" id="conv-walk"></div>
+  <div class="lab" id="conv-ex"></div>
+
+  <div class="sec">
+    <h2>Errores a evitar</h2>
+    <ol>
+      <li><strong>Dividir por cero.</strong> Un kernel de bordes suma 0 y no se normaliza.</li>
+      <li><strong>Olvidar el escalamiento</strong> cuando quedan negativos o valores sobre 255.</li>
+      <li><strong>Escalar píxel por píxel.</strong> El mínimo y el máximo salen de la matriz completa.</li>
+      <li><strong>Restar el máximo en vez del mínimo.</strong> Se resta el mínimo, para que exista el cero.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ===================== FRECUENCIA ===================== -->
+<section class="view" id="v-frecuencia" hidden>
+  <header class="vh">
+    <span class="eyebrow">Solemne 2 · ejercicio 2</span>
+    <h1>Dominio de la frecuencia</h1>
+    <p class="lead">"El segundo ejercicio de la segunda solemne." En la víspera lo resumió así: "básicamente le tengo que poner qué frecuencia es". <span class="src">Clases 4 y 12</span></p>
+  </header>
+
+  <div class="sec">
+    <h2>1. Cuándo hay frecuencia</h2>
+    <ul>
+      <li>Para que haya frecuencia tiene que haber un <strong>patrón de repetición</strong>, una iteración continua, "como si fuese una sinusoidal". <span class="src">Clases 4 y 5</span></li>
+      <li><strong>Alta frecuencia:</strong> el cambio pega "el salto con una pendiente vertical". De 0 a 1 de golpe: es un impulso. <span class="src">Clase 4</span></li>
+      <li><strong>Baja frecuencia:</strong> la "difuminación" de 255 a 0 y de vuelta a 255, de a poco. <span class="src">Clase 4</span></li>
+      <li><strong>Sin repetición, o con la imagen en blanco, no hay frecuencia.</strong> En el dominio de la frecuencia "no vamos a ver nada". <span class="src">Clase 4</span></li>
+    </ul>
+  </div>
+
+  <div class="sec">
+    <h2>2. Cómo se calcula</h2>
+    <p>El <strong>período</strong> es la cantidad de píxeles que hay <strong>de blanco a blanco</strong>: un ciclo completo.</p>
+    <div class="formula">frecuencia = 1 / período</div>
+    <div class="scroll"><table class="t">
+      <tr><th>De blanco a blanco</th><th>Período</th><th>Frecuencia</th><th>Dónde lo hizo</th></tr>
+      <tr><td>4 píxeles</td><td>4</td><td>1/4 = <strong>0,25</strong></td><td>Clase 5</td></tr>
+      <tr><td>16 píxeles</td><td>16</td><td>1/16 = <strong>0,0625</strong></td><td>Clase 4</td></tr>
+    </table></div>
+    <div class="ojo"><b>Ojo con la unidad:</b> la diapositiva 6 rotula el eje como "ciclos / pixels". En la Clase 4 el profe dijo el resultado en hertz: "la frecuencia es 0,0625 Hz". Escribe el número y, si el enunciado no fija la unidad, anota las dos lecturas.</div>
+  </div>
+
+  <div class="sec">
+    <h2>3. Qué se ve en el dominio de la frecuencia</h2>
+    <ul>
+      <li>Siempre hay un <strong>punto central</strong>. <span class="src">Clase 5</span></li>
+      <li>Una frecuencia aparece como <strong>dos puntos simétricos</strong>, a +f y −f del centro, porque "es positivo y negativo". <span class="src">Clase 4</span></li>
+      <li>La <strong>dirección</strong> es la del patrón de repetición. Franjas verticales se repiten al avanzar en horizontal: la dirección es <strong>horizontal</strong> y los puntos quedan sobre el eje horizontal. <span class="src">Clase 5</span></li>
+      <li>Una imagen compuesta muestra dos o tres pares de puntos: la FFT separa dos o tres frecuencias. <span class="src">Clase 4</span></li>
+      <li><strong>Cuidado con la escala:</strong> "no todos los gráficos están a la misma escala". <span class="src">Clase 5</span></li>
+    </ul>
+  </div>
+
+  <div class="lab" id="frec-gen"></div>
+
+  <div class="sec">
+    <h2>4. Tipos de transición</h2>
+    <div class="scroll"><table class="t">
+      <tr><th>Tipo</th><th>Perfil</th><th>Lectura</th></tr>
+      <tr><td><strong>Escalón</strong></td><td>Salta de un nivel a otro y <strong>se queda</strong></td><td>Cambio brusco único: un borde</td></tr>
+      <tr><td><strong>Impulso</strong></td><td>Salta y <strong>vuelve</strong> de inmediato</td><td>Cambio brusco: es el caso del ruido sal y pimienta</td></tr>
+      <tr><td><strong>Rampa</strong></td><td>Sube de a poco a lo largo de varios píxeles</td><td>Difuminación: baja frecuencia</td></tr>
+      <tr><td><strong>Plano</strong></td><td>No cambia</td><td>No hay frecuencia</td></tr>
+    </table></div>
+    <pre class="mx">escalón      impulso        rampa          plano
+  ___          _             ___            ____
+ |            | |          _/
+_|           _| |_       _/</pre>
+  </div>
+
+  <div class="sec">
+    <h2>5. Filtros y frecuencia</h2>
+    <ul>
+      <li>Los <strong>tres filtros frecuenciales</strong>: pasa bajo, pasa alto y pasa banda. <span class="src">Clase 12</span></li>
+      <li><strong>Pasa bajo</strong> deja las bajas: difumina. Media y gaussiano.</li>
+      <li><strong>Pasa alto</strong> deja las altas: resalta bordes y detalle.</li>
+      <li>El ruido y los cambios bruscos son alta frecuencia; difuminar los atenúa. <span class="src">Clase 9</span></li>
+      <li>Si se saca información en el dominio de la frecuencia, <strong>se pierde detalle</strong>: se va la interferencia, pero también las pestañas. <span class="src">Clase 5</span></li>
+      <li>La <strong>FFT</strong> es la que pasa una señal al dominio de la frecuencia; así funciona un supresor de ruido. <span class="src">Clase 4</span></li>
+    </ul>
+    <div class="nota">En la Clase 5 mostró dos preguntas de la diapositiva 8 —qué es la <em>fast Fourier transform</em> y qué es la transformada discreta de Fourier— y dijo que eran para la Solemne 2. Las transcripciones no desarrollan esas dos definiciones. Conviene revisarlas en el PDF o preguntarle.</div>
+  </div>
+
+  <div class="lab" id="frec-ex"></div>
+
+  <div class="sec">
+    <h2>Cómo se resuelve y qué evitar</h2>
+    <ol>
+      <li><strong>Mirar si hay repetición.</strong> Si la hay, contar los píxeles de blanco a blanco y calcular 1/período.</li>
+      <li>Si no la hay, es una transición única: clasificarla y decir que no hay frecuencia.</li>
+      <li>Decir si el cambio es brusco (alta) o difuminado (baja).</li>
+      <li>Indicar la dirección del patrón de repetición.</li>
+    </ol>
+    <ul>
+      <li><strong>No confundir impulso con escalón.</strong> El impulso vuelve, el escalón se queda.</li>
+      <li><strong>No dar la dirección al revés.</strong> Franjas verticales, dirección horizontal.</li>
+      <li><strong>No hablar de frecuencia sin repetición.</strong></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== MORFOLOGÍA ===================== -->
+<section class="view" id="v-morfologia" hidden>
+  <header class="vh">
+    <span class="eyebrow">Solemne 2 · ejercicio 3</span>
+    <h1>Morfología matemática</h1>
+    <p class="lead">Elemento estructurante sobre matriz binaria: erosión, dilatación, apertura y cierre. Es el ejercicio largo: "vamos a tener que estar mirando el elemento estructurante". <span class="src">Clase 12</span></p>
+  </header>
+
+  <div class="sec">
+    <h2>0. Lo primero, siempre: fondo y figura</h2>
+    <div class="ojo"><b>El error número uno.</b> "Todo va a depender, y ustedes van a tener que preguntar cuál es el fondo y cuál es la figura." En papel blanco la figura es lo que dibujas en negro; en binario no se sabe sin que lo digan. <span class="src">Clase 10</span></div>
+    <p>Si el enunciado no lo dice, se asume <strong>figura = 1 (blanco)</strong> sobre <strong>fondo = 0 (negro)</strong> y se deja escrito en la hoja. "El cero es la ausencia, el uno es completo." <span class="src">Clase 10</span></p>
+  </div>
+
+  <div class="sec">
+    <h2>1. Las dos operaciones base</h2>
+    <div class="cols">
+      <div>
+        <h3>Erosión — el Y lógico</h3>
+        <p>El píxel sobrevive como 1 <strong>solo si TODOS</strong> los píxeles bajo el elemento estructurante son 1. Basta un cero para apagarlo.</p>
+        <p>"Desgasta proporcionalmente, como si fuese una herramienta de desgaste." Elimina los puntos chicos de ruido blanco. Un punto solo, erosionado con la máscara completa, desaparece. <span class="src">Clase 10</span></p>
+      </div>
+      <div>
+        <h3>Dilatación — el O lógico</h3>
+        <p>El píxel pasa a 1 si <strong>ALGUNO</strong> de los píxeles bajo el elemento estructurante es 1. Basta un uno para encenderlo.</p>
+        <p>"Hace que el uno se agrande." Rellena huecos, grietas, orificios y poros. <span class="src">Clase 10</span></p>
+        <p>Otra lectura: reemplazar cada píxel blanco por una réplica del elemento estructurante. <span class="src">Diapositiva 6</span></p>
+      </div>
+    </div>
+    <p>El elemento estructurante normal de la prueba es el <strong>3×3 lleno de unos</strong>, con el pivote al centro. Lo que queda fuera de la matriz se toma como fondo.</p>
+  </div>
+
+  <div class="sec">
+    <h2>2. Las dos compuestas</h2>
+    <div class="scroll"><table class="t">
+      <tr><th></th><th>Orden</th><th>Qué hace</th><th>Para recordar</th></tr>
+      <tr><td><strong>Apertura</strong></td><td>erosión → dilatación</td><td>Limpia <strong>por fuera</strong>: quita puntos aislados, rompe istmos, elimina protuberancias</td><td>"Cuando abre no sella"</td></tr>
+      <tr><td><strong>Cierre</strong></td><td>dilatación → erosión</td><td>Rellena <strong>por dentro</strong>: sella fisuras, poros y agujeros</td><td>Para sellar la grieta, hay que cerrar</td></tr>
+    </table></div>
+    <p>El ejemplo del profe para la apertura: un cielo estrellado donde solo quieres ver la luna. Erosión para borrar las estrellas y después dilatación para devolverle el tamaño a la luna. <span class="src">Clase 10</span></p>
+    <p>Por eso se prefiere la apertura a una erosión sola: la segunda operación devuelve el tamaño, pero <strong>no resucita lo que la primera borró del todo</strong>.</p>
+  </div>
+
+  <div class="lab" id="morf-lab"></div>
+  <div class="lab" id="morf-ex"></div>
+
+  <div class="sec">
+    <h2>Cómo hacerlo rápido en la prueba</h2>
+    <ul>
+      <li><strong>Erosión:</strong> recorre solo los píxeles que ya son 1. Si alguno de sus 8 vecinos es 0, se apaga. Los del contorno del objeto siempre se apagan.</li>
+      <li><strong>Dilatación:</strong> recorre los que son 0. Si alguno de sus vecinos es 1, se enciende.</li>
+      <li><strong>Apertura o cierre:</strong> haz la primera operación completa, <strong>escribe la matriz intermedia</strong> y recién ahí haz la segunda.</li>
+      <li>Anota qué tomaste como figura y que lo de afuera vale fondo.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== BORDES ===================== -->
+<section class="view" id="v-bordes" hidden>
+  <header class="vh">
+    <span class="eyebrow">Solemne 2 · teoría</span>
+    <h1>Operadores de borde</h1>
+    <p class="lead">Sobel, Prewitt, Roberts Cross, Kirsch y Canny. De aquí salió buena parte del cuestionario que el profe proyectó la víspera. <span class="src">Clases 8 y 12</span></p>
+  </header>
+
+  <div class="sec">
+    <h2>1. Qué es un borde</h2>
+    <p>Un <strong>cambio brusco de intensidad</strong> entre píxeles vecinos. Estas máscaras lo resaltan aproximando la derivada: con Prewitt se evita calcular "las derivadas continuas directas de la función de intensidad". <span class="src">Clase 12</span></p>
+    <p>Todas tienen <strong>norma cero</strong>, así que <strong>ninguna se normaliza</strong>.</p>
+  </div>
+
+  <div class="sec">
+    <h2>2. Los cuatro operadores</h2>
+    <div class="cols">
+      <div>
+        <h3>Sobel — el estándar</h3>
+        <pre class="mx">     Gx              Gy
+ -1  0  1       -1 -2 -1
+ -2  0  2        0  0  0
+ -1  0  1        1  2  1</pre>
+        <p>3×3. "Incluye una ponderación central de dos", que aplica "un suavizado gaussiano implícito". Bordes <strong>gruesos</strong>, énfasis en verticales y horizontales, rápido. <span class="src">Clases 8 y 12</span></p>
+      </div>
+      <div>
+        <h3>Prewitt — Sobel sin el peso</h3>
+        <pre class="mx">     Gx              Gy
+ -1  0  1       -1 -1 -1
+ -1  0  1        0  0  0
+ -1  0  1        1  1  1</pre>
+        <p>3×3 con <strong>pesos uniformes de 1</strong>. "Una variante de Sobel, no es más que eso." Detección rápida de bordes ortogonales. <span class="src">Clase 8</span></p>
+      </div>
+      <div>
+        <h3>Roberts Cross — el chico</h3>
+        <pre class="mx">  1  0        0  1
+  0 -1       -1  0</pre>
+        <p><strong>2×2</strong>, el único que no es 3×3. Trabaja en diagonal. Muy rápido y muy sensible al ruido.</p>
+      </div>
+      <div>
+        <h3>Kirsch — la brújula</h3>
+        <pre class="mx"> -3 -3  5
+ -3  0  5     y sus 7 rotaciones
+ -3 -3  5</pre>
+        <p><strong>Ocho máscaras</strong> de compás rotacionales, una por dirección; se queda con la respuesta máxima. Sensibilidad extrema: destaca en <strong>microdefectos</strong>. Ocho convoluciones lo hacen lento. <span class="src">Clases 8 y 12</span></p>
+      </div>
+    </div>
+    <div class="ojo"><b>Dos errores del profe en uno:</b> Sobel y Prewitt son <strong>ambos 3×3</strong> y se diferencian solo por el 2 central. Si aparece un kernel de <strong>2×2</strong>, es Roberts.</div>
+  </div>
+
+  <div class="sec">
+    <h2>3. Magnitud y dirección</h2>
+    <div class="formula">magnitud = √(Gx² + Gy²)   ≈   |Gx| + |Gy|      dirección = arctan(Gy / Gx)</div>
+    <p>La aproximación con valores absolutos es la rápida: se usa cuando hay poco cómputo, como en sistemas embebidos. <span class="src">Clase 12</span></p>
+    <p>Sobel Gx responde a cambios al avanzar en horizontal: marca los bordes <strong>verticales</strong>. Gy marca los horizontales. <span class="src">Clase 8</span></p>
+  </div>
+
+  <div class="sec">
+    <h2>4. Canny: un algoritmo, no un kernel</h2>
+    <ol>
+      <li><strong>Suavizado gaussiano</strong>, para reducir el ruido antes de derivar.</li>
+      <li><strong>Gradiente</strong> con Sobel: magnitud y dirección.</li>
+      <li><strong>Supresión de no máximos:</strong> solo sobrevive el máximo local a lo largo del gradiente. Aquí el borde queda de <strong>un píxel</strong>.</li>
+      <li><strong>Histéresis con dos umbrales:</strong> sobre el alto es borde; bajo el bajo no; en el medio, solo si se conecta con uno fuerte.</li>
+    </ol>
+    <p>Resultado: "bordes ultra finos, contornos cerrados". Es el más nuevo (1986) y el que el profe prefiere, pero "es más lento debido a su complejidad algorítmica": gasta más recursos que Sobel. <span class="src">Clases 8 y 12</span></p>
+  </div>
+
+  <div class="sec">
+    <h2>5. Comparación</h2>
+    <div class="scroll"><table class="t">
+      <tr><th>Operador</th><th>Tamaño</th><th>Borde</th><th>Velocidad</th><th>Para qué</th></tr>
+      <tr><td><strong>Roberts</strong></td><td>2×2</td><td>Fino</td><td>Máxima</td><td>Diagonales, imágenes limpias</td></tr>
+      <tr><td><strong>Prewitt</strong></td><td>3×3</td><td>Directo</td><td>Alta</td><td>Ortogonales, detección rápida</td></tr>
+      <tr><td><strong>Sobel</strong></td><td>3×3</td><td>Grueso</td><td>Alta</td><td>Verticales y horizontales</td></tr>
+      <tr><td><strong>Kirsch</strong></td><td>3×3 × 8</td><td>Direccional</td><td>Baja</td><td>Microdefectos, 8 direcciones</td></tr>
+      <tr><td><strong>Canny</strong></td><td>algoritmo</td><td>1 píxel</td><td>Baja</td><td>Contornos cerrados, seguir líneas</td></tr>
+    </table></div>
+  </div>
+
+  <div class="lab" id="bord-demo"></div>
+  <div class="lab" id="bord-game"></div>
+</section>
+
+<!-- ===================== FILTROS ===================== -->
+<section class="view" id="v-filtros" hidden>
+  <header class="vh">
+    <span class="eyebrow">Solemne 2 · teoría</span>
+    <h1>Filtros de suavizado y ruido</h1>
+    <p class="lead">Media, gaussiano y mediana, y cuál sirve contra qué ruido. <span class="src">Clases 4, 9 y 12</span></p>
+  </header>
+
+  <div class="sec">
+    <h2>1. El ruido sal y pimienta</h2>
+    <ul>
+      <li><strong>Sal:</strong> puntos <strong>blancos</strong>. <strong>Pimienta:</strong> puntos <strong>negros</strong>.</li>
+      <li>Es ruido <strong>impulsivo</strong>: cada punto es un impulso, un píxel con un valor absurdo respecto de sus vecinos. <span class="src">Clase 9</span></li>
+    </ul>
+  </div>
+
+  <div class="sec">
+    <h2>2. Los tres filtros</h2>
+    <div class="cols">
+      <div>
+        <h3>Media</h3>
+        <pre class="mx"> 1  1  1
+ 1  1  1   × 1/9
+ 1  1  1</pre>
+        <p>Promedio del vecindario. En 5×5 la norma es 25. Suaviza, pero <strong>reparte</strong> el valor absurdo entre los vecinos. <span class="src">Clase 8</span></p>
+      </div>
+      <div>
+        <h3>Gaussiano</h3>
+        <pre class="mx"> 1  2  1
+ 2  4  2   × 1/16
+ 1  2  1</pre>
+        <p>"Centrado simétrico": la cruz de los 2 y el centro con el 4. La difuminación va del píxel central hacia los bordes. Es <strong>ineficaz contra sal y pimienta</strong>. <span class="src">Clase 9</span></p>
+      </div>
+      <div>
+        <h3>Mediana</h3>
+        <p><strong>No es una convolución:</strong> no multiplica ni suma, <strong>ordena</strong>.</p>
+        <ol>
+          <li>Tomar los 9 valores del vecindario.</li>
+          <li>Ordenarlos de menor a mayor.</li>
+          <li>Quedarse con el del medio: el quinto.</li>
+        </ol>
+        <p>Elimina el ruido impulsivo <strong>por completo y preservando los contornos</strong>. <span class="src">Clases 9 y 12</span></p>
+      </div>
+    </div>
+    <div class="ojo"><b>Error del profe:</b> gaussiano contra sal y pimienta no sirve. "Si yo tengo un ruido impulsional, lo mejor es una de mediana." <span class="src">Clase 9</span></div>
+  </div>
+
+  <div class="sec">
+    <h2>3. Ejemplo de mediana</h2>
+    <pre class="mx"> 50  52  48
+ 51 255  49      ordenados: 47 48 49 50 [50] 51 52 53 255
+ 47  53  50</pre>
+    <p>La mediana es <strong>50</strong>: el 255 desapareció. Con media habría dado 655 / 9 ≈ <strong>73</strong>, un píxel alterado por el mismo ruido que se quería sacar.</p>
+  </div>
+
+  <div class="sec">
+    <h2>4. Qué filtro para qué</h2>
+    <div class="scroll"><table class="t">
+      <tr><th>Problema</th><th>Filtro</th><th>Por qué</th></tr>
+      <tr><td>Sal y pimienta, ruido impulsivo</td><td><strong>Mediana</strong></td><td>Ordena: el extremo nunca queda al medio</td></tr>
+      <tr><td>Ruido suave</td><td><strong>Gaussiano</strong></td><td>Promedio ponderado desde el centro</td></tr>
+      <tr><td>Antes de detectar bordes</td><td><strong>Gaussiano</strong></td><td>Reduce el ruido antes de derivar</td></tr>
+      <tr><td>Suavizado simple</td><td><strong>Media</strong></td><td>El más directo; pierde más detalle</td></tr>
+    </table></div>
+    <p><strong>Suavizar siempre pierde detalle.</strong> Y mientras más grande la máscara, más potente el efecto: una gaussiana muy grande difumina mucho más. <span class="src">Clase 4</span></p>
+  </div>
+
+  <div class="lab" id="filt-demo"></div>
+  <div class="lab" id="filt-ex"></div>
+</section>
+
+<!-- ===================== BINARIZACIÓN ===================== -->
+<section class="view" id="v-binarizacion" hidden>
+  <header class="vh">
+    <span class="eyebrow">Solemne 2 · teoría</span>
+    <h1>Binarización y umbralización</h1>
+    <p class="lead">Umbral global, Otsu y umbralización adaptativa. Es el paso previo a la morfología y a los blobs. <span class="src">Clase 9</span></p>
+  </header>
+
+  <div class="sec">
+    <h2>1. Qué es</h2>
+    <p><strong>Umbralizar</strong> (<em>threshold</em>) es definir un umbral de intensidad y dejar lo que queda en blanco o en negro. También puede ser una <strong>banda</strong>: todas las intensidades entre un mínimo y un máximo. <span class="src">Clase 9</span></p>
+    <pre class="mx">si  píxel &gt; umbral   →  1 (blanco)
+si  píxel ≤ umbral   →  0 (negro)</pre>
+  </div>
+
+  <div class="sec">
+    <h2>2. Los tres métodos</h2>
+    <div class="scroll"><table class="t">
+      <tr><th>Método</th><th>Cómo elige el umbral</th><th>Cuándo sirve</th></tr>
+      <tr><td><strong>Global</strong></td><td>Un valor fijo para toda la imagen, puesto a mano: "valor desde, valor hasta"</td><td>Iluminación pareja</td></tr>
+      <tr><td><strong>Otsu</strong></td><td>Determina <strong>automáticamente</strong> el valor T óptimo analizando el <strong>histograma bimodal</strong>. Sigue siendo un solo umbral</td><td>Histograma con dos jorobas: objeto y fondo</td></tr>
+      <tr><td><strong>Adaptativa</strong></td><td>Un umbral distinto para cada zona, según su vecindario</td><td>Media hoja con luz y media con sombra, papel arrugado, OCR</td></tr>
+    </table></div>
+    <div class="ojo"><b>Trampa clásica:</b> Otsu <strong>no</strong> es adaptativo. Es global con umbral automático. La que cambia el umbral por región es la adaptativa, y su caso de éxito en el material es el <strong>OCR</strong>. <span class="src">Clases 9 y 12</span></div>
+    <p><strong>La iluminación es parte del algoritmo:</strong> "siempre es importante para el algoritmo la iluminación". <span class="src">Clase 9</span></p>
+  </div>
+
+  <div class="lab" id="bin-demo"></div>
+
+  <div class="sec">
+    <h2>Errores a evitar</h2>
+    <ol>
+      <li>Creer que Otsu es adaptativo.</li>
+      <li>Usar umbral global con iluminación dispareja.</li>
+      <li>Binarizar sin filtrar antes: el ruido queda binarizado también.</li>
+      <li>Olvidar que binarizar es el paso previo a morfología y blobs.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ===================== DETECCIÓN ===================== -->
+<section class="view" id="v-deteccion" hidden>
+  <header class="vh">
+    <span class="eyebrow">Solemne 2 · teoría</span>
+    <h1>Hough, blobs y Harris</h1>
+    <p class="lead">Detección geométrica y descriptores. SIFT y ORB quedaron fuera: no los estudies. <span class="src">Clase 11 · PDF 4</span></p>
+  </header>
+
+  <div class="sec">
+    <h2>1. Transformada de Hough</h2>
+    <ul>
+      <li>Detecta <strong>líneas rectas y círculos</strong>.</li>
+      <li>Trabaja por <strong>votación</strong>: cada punto de borde vota por todas las rectas que podrían pasar por él. Las que juntan muchos votos existen, aunque la línea esté cortada.</li>
+      <li>Usa <strong>coordenadas polares</strong> porque con <span class="m">y = mx + b</span> las rectas verticales tendrían pendiente infinita.</li>
+      <li>Dos variantes: <strong>estándar</strong> (todos los puntos, rectas infinitas) y <strong>probabilística</strong> (muestrea puntos, devuelve segmentos con extremos; más rápida).</li>
+      <li>Para círculos vota en tres parámetros: centro (a, b) y radio r.</li>
+      <li>Entra una <strong>imagen de bordes ya binarizada</strong>, no la original.</li>
+    </ul>
+    <div class="formula">ρ = x·cos(θ) + y·sen(θ)</div>
+    <div class="lab" id="hough-demo"></div>
+  </div>
+
+  <div class="sec">
+    <h2>2. Blobs</h2>
+    <ul>
+      <li>Un <strong>blob</strong> es una <strong>región</strong>: un grupo de píxeles conectados. <span class="src">Clase 12</span></li>
+      <li>Lo útil es <strong>filtrarlos por propiedades</strong>: área, circularidad (1 = círculo perfecto), perímetro, convexidad.</li>
+      <li>Ventaja frente a contar píxeles: "permite ignorar pequeñas motas de polvo". <span class="src">Clase 12</span></li>
+      <li>Antes de contar conviene una <strong>apertura</strong>, para borrar las motas.</li>
+    </ul>
+    <div class="lab" id="blob-demo"></div>
+  </div>
+
+  <div class="sec">
+    <h2>3. Harris: esquinas</h2>
+    <p>Una esquina es un punto donde la intensidad cambia fuerte en <strong>las dos direcciones</strong> a la vez. Harris arma una matriz 2×2 con los gradientes locales y mira sus dos autovalores:</p>
+    <div class="scroll"><table class="t">
+      <tr><th>λ₁ y λ₂</th><th>Región</th></tr>
+      <tr><td>Los dos chicos</td><td>Plana</td></tr>
+      <tr><td>Uno grande y uno chico</td><td>Borde</td></tr>
+      <tr><td><strong>Los dos grandes</strong></td><td><strong>Esquina</strong></td></tr>
+    </table></div>
+    <p>Trabaja en escala de grises. Se usa para calibrar con tablero de ajedrez y seguir puntos entre imágenes.</p>
+    <div class="lab" id="harris-demo"></div>
+  </div>
+
+  <div class="sec">
+    <h2>4. Cómo se encadena todo</h2>
+    <pre class="mx">imagen color
+  → escala de grises
+  → filtro          (mediana si hay sal y pimienta; gaussiano si no)
+  → bordes          (Sobel / Canny)
+  → binarización    (global, Otsu o adaptativa)
+  → morfología      (apertura limpia, cierre rellena)
+  → detección       (Hough: líneas y círculos · blobs: regiones · Harris: esquinas)</pre>
+    <p>La gracia está en mezclar un filtro con otro: acondicionar la imagen antes de detectar. <span class="src">Clase 8</span></p>
+  </div>
+</section>
+
+<!-- ===================== ALTERNATIVAS ===================== -->
+<section class="view" id="v-alternativas" hidden>
+  <header class="vh">
+    <span class="eyebrow">Practicar</span>
+    <h1>Alternativas</h1>
+    <p class="lead">Como el cuestionario que proyectó el profe en la Clase 12, con tiempo opcional. Él mismo avisó: "las preguntas de la prueba probablemente no sean estas". Sirven para medir, no para memorizar respuestas.</p>
+  </header>
+  <div class="lab" id="quiz"></div>
+</section>
+
+<!-- ===================== TARJETAS ===================== -->
+<section class="view" id="v-tarjetas" hidden>
+  <header class="vh">
+    <span class="eyebrow">Practicar</span>
+    <h1>Tarjetas de memoria</h1>
+    <p class="lead">Responde en voz alta o en el cuaderno antes de dar vuelta la tarjeta. Las que no sabías vuelven al final del mazo.</p>
+  </header>
+  <div class="lab" id="cards"></div>
+</section>
+
+<!-- ===================== SIMULACRO ===================== -->
+<section class="view" id="v-simulacro" hidden>
+  <header class="vh">
+    <span class="eyebrow">Practicar</span>
+    <h1>Simulacro</h1>
+    <p class="lead">Los tres ejercicios de desarrollo más quince alternativas de las dos solemnes, con reloj. La Solemne 2 duró cerca de dos horas. Resuélvelo en papel, con calculadora y sin celular, y escribe acá solo los resultados.</p>
+  </header>
+  <div id="simu"></div>
+</section>
+
+</main>
+</div>
+<script>
+(function(){
+"use strict";
+
+/* ============ utilidades ============ */
+const $ = id => document.getElementById(id);
+function h(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  if (attrs) for (const k in attrs){
+    const v = attrs[k];
+    if (v == null || v === false) continue;
+    if (k === "class") e.className = v;
+    else if (k === "text") e.textContent = v;
+    else if (k === "html") e.innerHTML = v;
+    else if (k.slice(0,2) === "on") e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat(3)){
+    if (c == null || c === false) continue;
+    e.appendChild((typeof c === "string" || typeof c === "number") ? document.createTextNode(String(c)) : c);
+  }
+  return e;
+}
+const rnd = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+const pick = a => a[Math.floor(Math.random()*a.length)];
+function shuffle(a){ a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || "#888888";
+const fmt = (v,d) => { const p = Math.pow(10, d==null?2:d); return String(Math.round(v*p)/p).replace(".", ","); };
+let _seq = 0; const newId = p => p + (++_seq);
+const opt = (v,t) => h("option",{value:v,text:t});
+const field = (label, ctrl) => h("label",{class:"field"}, label, ctrl);
+function mark(ctrl, ok){ const f = ctrl.closest(".field"); if (f){ f.classList.toggle("good", !!ok); f.classList.toggle("wrong", !ok); } }
+function num(s){
+  s = String(s).replace(",", ".").trim();
+  if (s.indexOf("/") > 0){ const p = s.split("/"); const a = parseFloat(p[0]), b = parseFloat(p[1]); return (isNaN(a)||isNaN(b)||b===0) ? null : a/b; }
+  const v = parseFloat(s); return isNaN(v) ? null : v;
+}
+const store = {
+  get(k,d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+/* ============ registro de intentos ============ */
+let db = null, uid = null;
+const useCap = (window.claude && typeof window.claude.use === "function") ? (n => window.claude.use(n)) : (() => Promise.resolve(null));
+Promise.resolve().then(() => useCap("db")).then(d => { db = d; return useCap("user"); })
+  .then(u => u ? u.id() : null).then(id => { uid = id; }).catch(() => {});
+
+const TEMAS = { "convolucion":"Convolución", "frecuencia":"Frecuencia", "morfologia":"Morfología", "teoria-s1":"Teoría S1", "teoria-s2":"Teoría S2", "filtros":"Mediana", "tarjetas":"Tarjetas", "simulacro":"Simulacros" };
+function registrar(tema, detalle, ok){
+  const t = store.get("bva-tally", {}); const r = t[tema] || [0,0];
+  r[1]++; if (ok) r[0]++; t[tema] = r; store.set("bva-tally", t); drawProg();
+  if (!db) return;
+  try{
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+    const p = db.collection("intentos").doc(id).set({ tema: tema, detalle: String(detalle).slice(0,300), correcto: !!ok, fecha: new Date().toISOString(), quien: uid || "anon", origen: "biblia" });
+    if (p && p.catch) p.catch(() => {});
+  }catch(e){ /* el registro nunca interrumpe el estudio */ }
+}
+function drawProg(){
+  const el = $("prog"); if (!el) return;
+  const t = store.get("bva-tally", {});
+  el.replaceChildren(...Object.keys(TEMAS).map(k => {
+    const r = t[k] || [0,0]; const pct = r[1] ? Math.round(r[0]*100/r[1]) : 0;
+    return h("div",{class:"pc"}, h("small",{text:TEMAS[k]}), h("b",{text: r[1] ? (r[0] + " / " + r[1]) : "sin intentos"}), h("div",{class:"bar"}, h("i",{style:"width:"+pct+"%"})));
+  }));
+}
+
+/* ============ matrices ============ */
+function grayCell(td, v){ const g = clamp(Math.round(v),0,255); td.style.background = "rgb("+g+","+g+","+g+")"; td.style.color = g > 130 ? "#0b0e16" : "#f2f4fa"; }
+function mxTable(m, o){
+  o = o || {};
+  const t = h("table",{class:"mxg"});
+  m.forEach((row,i) => {
+    const tr = h("tr");
+    row.forEach((v,j) => {
+      const td = h("td",{text: o.fmt ? o.fmt(v) : String(v)});
+      if (o.gray) grayCell(td, v);
+      if (o.cls){ const c = o.cls(i,j); if (c) td.classList.add(c); }
+      if (o.onclick){
+        td.tabIndex = 0; td.setAttribute("role","button");
+        const f = () => o.onclick(i,j);
+        td.addEventListener("click", f);
+        td.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); f(); } });
+      }
+      tr.appendChild(td);
+    });
+    t.appendChild(tr);
+  });
+  return t;
+}
+const fig = (cap, node) => h("figure",null, h("figcaption",{text:cap}), h("div",{class:"scroll"}, node));
+function inputGrid(r, c, prefix){
+  const inputs = []; const t = h("table",{class:"mxg"});
+  for (let i=0;i<r;i++){
+    const tr = h("tr"); inputs.push([]);
+    for (let j=0;j<c;j++){
+      const inp = h("input",{type:"text", inputmode:"numeric", id:prefix+"-"+i+"-"+j, "aria-label":"fila "+(i+1)+", columna "+(j+1), autocomplete:"off"});
+      inputs[i].push(inp); tr.appendChild(h("td",null,inp));
+    }
+    t.appendChild(tr);
+  }
+  return { el:t, inputs:inputs };
+}
+
+/* ============ convolución ============ */
+const K = {
+  sobelx:{n:"Sobel Gx",   k:[[-1,0,1],[-2,0,2],[-1,0,1]]},
+  sobely:{n:"Sobel Gy",   k:[[-1,-2,-1],[0,0,0],[1,2,1]]},
+  prewx: {n:"Prewitt Gx", k:[[-1,0,1],[-1,0,1],[-1,0,1]]},
+  prewy: {n:"Prewitt Gy", k:[[-1,-1,-1],[0,0,0],[1,1,1]]},
+  gauss: {n:"Gaussiano",  k:[[1,2,1],[2,4,2],[1,2,1]]},
+  media: {n:"Media",      k:[[1,1,1],[1,1,1],[1,1,1]]}
+};
+function convolve(img, k){
+  const n = img.length, m = img[0].length, ks = k.length, out = [];
+  for (let i=0;i+ks<=n;i++){ const r = [];
+    for (let j=0;j+ks<=m;j++){ let s = 0;
+      for (let a=0;a<ks;a++) for (let b=0;b<ks;b++) s += img[i+a][j+b]*k[a][b];
+      r.push(s); }
+    out.push(r); }
+  return out;
+}
+const norma = k => k.reduce((s,r) => s + r.reduce((a,b) => a+b, 0), 0);
+function to8bit(raw, k){
+  const nrm = norma(k);
+  const div = raw.map(r => r.map(v => nrm !== 0 ? v/nrm : v));
+  let mn = Infinity, mx = -Infinity;
+  div.forEach(r => r.forEach(v => { if (v<mn) mn=v; if (v>mx) mx=v; }));
+  const needs = (mn < 0 || mx > 255) && mx !== mn;
+  const fin = div.map(r => r.map(v => needs ? Math.round((v-mn)*255/(mx-mn)) : Math.round(v)));
+  return { nrm:nrm, div:div, mn:mn, mx:mx, needs:needs, fin:fin };
+}
+function genImg(n){
+  const lo = pick([0,10,20,30,40,50]), hi = Math.min(250, lo + pick([100,120,150,180,200]));
+  const t = rnd(0,6), c = rnd(1,n-2), r = rnd(1,n-2), flip = Math.random() < .5, step = pick([20,30,40]);
+  const A = flip ? hi : lo, B = flip ? lo : hi, m = [];
+  for (let i=0;i<n;i++){ const row = [];
+    for (let j=0;j<n;j++){ let v;
+      switch (t){
+        case 0: v = j <= c ? A : B; break;
+        case 1: v = i <= r ? A : B; break;
+        case 2: v = j === c ? hi : lo; break;
+        case 3: v = (i === r && j === c) ? hi : lo; break;
+        case 4: v = lo + j*step; break;
+        case 5: v = (i >= r && j >= c) ? hi : lo; break;
+        default: v = Math.min(250, (j <= c ? A : B) + rnd(0,2)*10);
+      }
+      row.push(v); }
+    m.push(row); }
+  return m;
+}
+const f1 = v => fmt(v,1);
+
+function convSolution(raw, R){
+  const st = h("div",{class:"stage"}, fig("Suma de productos", mxTable(raw)));
+  if (R.nrm !== 0) st.append(fig("Dividido por la norma ("+R.nrm+")", mxTable(R.div,{fmt:f1})));
+  if (R.needs) st.append(fig("Desplazado: − ("+f1(R.mn)+")", mxTable(R.div.map(r => r.map(v => v-R.mn)),{fmt:f1})));
+  st.append(fig("Final en 8 bits", mxTable(R.fin,{gray:true})));
+  const lines = [];
+  lines.push(R.nrm === 0 ? "Norma = 0: es un kernel de bordes y no se divide (sería dividir por cero)." : "Norma = "+R.nrm+": cada suma se divide por "+R.nrm+".");
+  lines.push("Mínimo = "+f1(R.mn)+", máximo = "+f1(R.mx)+".");
+  lines.push(R.needs ? "Hay valores fuera de 0–255: se resta el mínimo y se multiplica por 255 / "+f1(R.mx-R.mn)+", redondeando."
+                     : "Todo quedó dentro de 0–255: no hay que escalar, solo redondear.");
+  return h("div",null, h("div",{class:"kv",html:lines.join("<br>")}), st);
+}
+
+function mountConvWalk(){
+  const root = $("conv-walk");
+  let img = [[10,10,200,10,10],[10,10,200,10,10],[10,10,200,10,10],[10,10,200,10,10],[10,10,200,10,10]];
+  let kk = "sobelx", sel = [1,0];
+  const ksel = h("select",{id:"cw-k"}, Object.keys(K).map(k => opt(k, K[k].n)));
+  const body = h("div");
+  ksel.addEventListener("change", () => { kk = ksel.value; draw(); });
+  root.append(
+    h("div",{class:"lab-h"}, h("b",{text:"Paso a paso"}), h("span",{text:"laboratorio"})),
+    h("p",{style:"margin:0",text:"Parte con el ejemplo de tu hoja: una franja clara y Sobel Gx. Toca cualquier celda del resultado para ver de dónde sale."}),
+    h("div",{class:"row"}, field("Máscara", ksel),
+      h("button",{class:"btn",type:"button",text:"Otra imagen",onclick:() => { img = genImg(5); sel = [1,1]; draw(); }})),
+    body);
+  function draw(){
+    const k = K[kk].k, raw = convolve(img,k), R = to8bit(raw,k), si = sel[0], sj = sel[1];
+    const terms = []; let sum = 0;
+    for (let a=0;a<3;a++) for (let b=0;b<3;b++){ const kv = k[a][b], pv = img[si+a][sj+b]; sum += kv*pv; if (kv !== 0) terms.push("("+pv+")("+kv+")"); }
+    body.replaceChildren(
+      h("div",{class:"stage"},
+        fig("Imagen 5×5", mxTable(img,{gray:true, cls:(i,j) => (i>=si && i<si+3 && j>=sj && j<sj+3) ? "hl" : ""})),
+        fig("Máscara · "+K[kk].n, mxTable(k)),
+        fig("Suma de productos (toca una celda)", mxTable(raw,{cls:(i,j) => (i===si && j===sj) ? "sel" : "", onclick:(i,j) => { sel = [i,j]; draw(); }}))),
+      h("div",{class:"kv",html:"Celda fila "+(si+1)+", columna "+(sj+1)+" del resultado:<br>"+terms.join(" + ")+" = <b>"+sum+"</b>"+(terms.length < 9 ? "<br>Los ceros de la máscara no aportan, se pueden saltar." : "")}),
+      convSolution(raw, R));
+  }
+  draw();
+}
+
+function ConvEx(n){
+  /* los kernels de borde son los que obligan a escalar: salen cuatro de cada cinco veces */
+  const kkey = pick(["sobelx","sobely","prewx","prewy","sobelx","sobely","prewx","prewy","gauss","media"]), k = K[kkey].k; let img, raw, R, tries = 0;
+  do { img = genImg(n); raw = convolve(img,k); R = to8bit(raw,k); tries++; }
+  while (tries < 40 && new Set([].concat.apply([], raw)).size < 2);
+  const id = newId("cx"), rs = raw.length, cs = raw[0].length, g = inputGrid(rs, cs, id);
+  const fN = h("input",{type:"text",inputmode:"numeric",id:id+"-n",autocomplete:"off"});
+  const fD = h("select",{id:id+"-d"}, opt("","—"), opt("si","Sí"), opt("no","No se puede"));
+  const fE = h("select",{id:id+"-e"}, opt("","—"), opt("si","Sí"), opt("no","No hizo falta"));
+  const el = h("div",null,
+    h("p",{html:"Aplica la máscara <strong>"+K[kkey].n+"</strong> sobre la imagen y entrega la matriz resultante en 8 bits, redondeada. Los bordes no se calculan: salen "+rs+"×"+cs+" valores."}),
+    h("div",{class:"stage"}, fig("Imagen "+n+"×"+n, mxTable(img,{gray:true})), fig("Máscara", mxTable(k))),
+    h("div",{class:"row"}, field("Norma", fN), field("¿Se divide por la norma?", fD), field("¿Hubo que escalar?", fE)),
+    fig("Matriz final en 8 bits", g.el));
+  function grade(){
+    const okN = num(fN.value) === R.nrm, okD = fD.value === (R.nrm !== 0 ? "si" : "no"), okE = fE.value === (R.needs ? "si" : "no");
+    mark(fN, okN); mark(fD, okD); mark(fE, okE);
+    let good = 0;
+    for (let i=0;i<rs;i++) for (let j=0;j<cs;j++){
+      const v = num(g.inputs[i][j].value), ok = v != null && Math.abs(v - R.fin[i][j]) <= 1;
+      g.inputs[i][j].parentNode.className = ok ? "good" : "wrong"; if (ok) good++;
+    }
+    const cells = good/(rs*cs), score = ((okN?1:0)+(okD?1:0)+(okE?1:0))/3*0.3 + cells*0.7, ok = okN && okD && okE && good === rs*cs;
+    const fails = [];
+    if (!okN) fails.push("norma"); if (!okD) fails.push("dividir"); if (!okE) fails.push("escalar"); if (good < rs*cs) fails.push((rs*cs-good)+" celdas");
+    return { ok:ok, score:score, detalle: K[kkey].n+" "+n+"×"+n+(ok ? "" : " · falló: "+fails.join(", ")), sol: convSolution(raw, R) };
+  }
+  return { el:el, grade:grade };
+}
+
+/* ============ contenedor de práctica ============ */
+function practice(root, title, make, tema, extra){
+  let ex = null;
+  const slot = h("div"), out = h("div");
+  const bCheck = h("button",{class:"btn pri",type:"button",text:"Revisar"});
+  const bNew = h("button",{class:"btn",type:"button",text:"Otro ejercicio"});
+  function fresh(){ ex = make(); slot.replaceChildren(ex.el); out.replaceChildren(); bCheck.disabled = false; }
+  bCheck.addEventListener("click", () => {
+    const r = ex.grade(); bCheck.disabled = true;
+    out.replaceChildren(h("div",{class:"verdict "+(r.ok ? "ok" : "bad")}, h("h4",{text: r.ok ? "Correcto" : "Hay errores: mira el procedimiento"}), r.sol));
+    registrar(tema, r.detalle, r.ok);
+  });
+  bNew.addEventListener("click", fresh);
+  root.append(h("div",{class:"lab-h"}, h("b",{text:title}), h("span",{text:"ejercicio"})));
+  if (extra) root.append(extra(fresh));
+  root.append(slot, h("div",{class:"row"}, bCheck, bNew), out);
+  fresh();
+}
+
+/* ============ frecuencia ============ */
+function patVal(kind, T, x){
+  const p = ((x % T) + T) % T;
+  if (kind === "nit") return p < Math.ceil(T/2) ? 255 : 0;
+  return Math.round(127.5 + 127.5*Math.cos(2*Math.PI*p/T));
+}
+function cellCanvas(cols, rows, valueAt, maxW){
+  const s = Math.max(6, Math.floor((maxW || 336)/cols)), cv = h("canvas",{width:cols*s, height:rows*s});
+  cv.style.width = (cols*s)+"px";
+  const c = cv.getContext("2d");
+  for (let y=0;y<rows;y++) for (let x=0;x<cols;x++){ const g = clamp(Math.round(valueAt(x,y)),0,255); c.fillStyle = "rgb("+g+","+g+","+g+")"; c.fillRect(x*s, y*s, s, s); }
+  c.strokeStyle = "rgba(125,135,156,.55)"; c.lineWidth = 1; c.beginPath();
+  for (let x=0;x<=cols;x++){ c.moveTo(x*s+.5,0); c.lineTo(x*s+.5,rows*s); }
+  for (let y=0;y<=rows;y++){ c.moveTo(0,y*s+.5); c.lineTo(cols*s,y*s+.5); }
+  c.stroke();
+  return cv;
+}
+function drawProfile(cv, vals){
+  const c = cv.getContext("2d"), Wd = cv.width, Hd = cv.height, L = 36, B = 18, T = 8;
+  c.clearRect(0,0,Wd,Hd);
+  c.fillStyle = cssv("--muted"); c.font = "11px monospace"; c.textAlign = "right";
+  c.fillText("255", L-6, T+8); c.fillText("0", L-6, Hd-B+3);
+  c.textAlign = "left"; c.fillText("posición en píxeles →", L, Hd-4);
+  c.strokeStyle = cssv("--line"); c.lineWidth = 1; c.beginPath();
+  c.moveTo(L+.5,T); c.lineTo(L+.5,Hd-B+.5); c.lineTo(Wd-4,Hd-B+.5); c.stroke();
+  const w = (Wd-L-6)/vals.length, y = v => T + (255-v)/255*(Hd-B-T);
+  c.strokeStyle = cssv("--accent"); c.lineWidth = 2; c.beginPath();
+  vals.forEach((v,i) => { const x0 = L+i*w, x1 = x0+w; if (i === 0) c.moveTo(x0,y(v)); else c.lineTo(x0,y(v)); c.lineTo(x1,y(v)); });
+  c.stroke();
+}
+function drawSpectrum(cv, f, horiz){
+  const c = cv.getContext("2d"), S = cv.width, m = S/2, R = S/2-22;
+  c.clearRect(0,0,S,S);
+  c.strokeStyle = cssv("--line"); c.lineWidth = 1; c.beginPath();
+  c.moveTo(m-R,m+.5); c.lineTo(m+R,m+.5); c.moveTo(m+.5,m-R); c.lineTo(m+.5,m+R); c.stroke();
+  c.fillStyle = cssv("--muted"); c.font = "11px monospace"; c.textAlign = "center";
+  c.fillText("−0,5", m-R, m+16); c.fillText("+0,5", m+R, m+16); c.fillText("ciclos / píxel", m, S-4);
+  c.fillStyle = cssv("--ink"); c.beginPath(); c.arc(m,m,5,0,7); c.fill();
+  if (f > 0){
+    const d = f/0.5*R; c.fillStyle = cssv("--accent");
+    [-1,1].forEach(sg => { c.beginPath(); c.arc(horiz ? m+sg*d : m, horiz ? m : m+sg*d, 6, 0, 7); c.fill(); });
+    c.fillText("±"+fmt(f,4), horiz ? m : m+44, horiz ? m-14 : m-d-10);
+  }
+}
+
+function mountFrecGen(){
+  const root = $("frec-gen");
+  const sForma = h("select",{id:"fg-forma"}, opt("nit","Franjas nítidas"), opt("dif","Franjas difuminadas"), opt("esc","Escalón"), opt("imp","Impulso"), opt("ram","Rampa"), opt("pla","Plano"));
+  const rT = h("input",{type:"range",id:"fg-t",min:"2",max:"32",value:"4"}), oT = h("output");
+  const sDir = h("select",{id:"fg-dir"}, opt("v","Franjas verticales"), opt("h","Franjas horizontales"));
+  const N = 64;
+  const cvImg = h("canvas",{class:"px",width:N,height:N}), cvPro = h("canvas",{width:420,height:150}), cvSpe = h("canvas",{width:220,height:220});
+  const out = h("div",{class:"kv"});
+  root.append(
+    h("div",{class:"lab-h"}, h("b",{text:"Del patrón a la frecuencia"}), h("span",{text:"laboratorio"})),
+    h("div",{class:"row"}, field("Forma", sForma), h("label",{class:"field"},"Período (píxeles de blanco a blanco)", rT, oT), field("Orientación", sDir)),
+    h("div",{class:"stage"}, h("figure",null,h("figcaption",{text:"Imagen (dominio espacial)"}),cvImg),
+      h("figure",null,h("figcaption",{text:"Perfil de intensidad"}),cvPro),
+      h("figure",null,h("figcaption",{text:"Dominio de la frecuencia"}),cvSpe)),
+    out);
+  function draw(){
+    const forma = sForma.value, T = +rT.value, vert = sDir.value === "v", per = forma === "nit" || forma === "dif";
+    oT.textContent = per ? T+" px" : "no aplica";
+    const val = x => {
+      if (per) return patVal(forma, T, x);
+      if (forma === "esc") return x < 32 ? 0 : 255;
+      if (forma === "imp") return x === 32 ? 255 : 0;
+      if (forma === "ram") return x < 16 ? 0 : (x > 48 ? 255 : Math.round((x-16)/32*255));
+      return 128;
+    };
+    const c = cvImg.getContext("2d"), idt = c.createImageData(N,N);
+    for (let y=0;y<N;y++) for (let x=0;x<N;x++){ const g = val(vert ? x : y), i = (y*N+x)*4; idt.data[i]=idt.data[i+1]=idt.data[i+2]=g; idt.data[i+3]=255; }
+    c.putImageData(idt,0,0);
+    const prof = []; for (let x=0;x<N;x++) prof.push(val(x));
+    drawProfile(cvPro, prof);
+    drawSpectrum(cvSpe, per ? 1/T : 0, vert);
+    let txt;
+    if (per){
+      txt = "Período = <b>"+T+" píxeles</b> de blanco a blanco → frecuencia = 1/"+T+" = <b>"+fmt(1/T,4)+"</b><br>"
+        + "El patrón se repite al avanzar en "+(vert ? "horizontal" : "vertical")+": dirección <b>"+(vert ? "horizontal" : "vertical")+"</b>, dos puntos simétricos sobre ese eje.<br>"
+        + (forma === "nit" ? "El cambio es un salto con pendiente vertical: <b>alta frecuencia</b>." : "El cambio es una difuminación: <b>baja frecuencia</b>.");
+    } else {
+      const d = { esc:"Escalón: salta y se queda. Es un borde.", imp:"Impulso: salta y vuelve de inmediato. Es el caso del ruido.", ram:"Rampa: sube de a poco. Es una difuminación.", pla:"Plano: no cambia." }[forma];
+      txt = d+"<br><b>No hay repetición, así que no hay frecuencia</b>: en el dominio de la frecuencia solo queda el punto central.";
+    }
+    out.innerHTML = txt;
+  }
+  [sForma,rT,sDir].forEach(e => e.addEventListener("input", draw));
+  draw();
+}
+
+const FREQ_N = {2:12,4:16,5:20,6:24,8:24,10:30,16:40,20:44};
+function FreqEx(forceKind){
+  const kind = forceKind || (Math.random() < .6 ? "A" : "B"), id = newId("fx");
+  if (kind === "A"){
+    const nit = Math.random() < .6, T = nit ? pick([2,4,5,6,8,10,16,20]) : pick([8,10,16,20]);
+    const vert = Math.random() < .5, N = FREQ_N[T], ph = rnd(0,T-1), val = x => patVal(nit ? "nit" : "dif", T, x+ph);
+    const cv = cellCanvas(N, Math.min(N,16), (x,y) => val(vert ? x : y), 352);
+    const line = []; for (let x=0;x<Math.min(N, 2*T+3);x++) line.push(val(x));
+    const fT = h("input",{type:"text",inputmode:"numeric",id:id+"-t",autocomplete:"off"}), fF = h("input",{type:"text",inputmode:"decimal",id:id+"-f",autocomplete:"off"});
+    const fDi = h("select",{id:id+"-d"}, opt("","—"), opt("h","Horizontal"), opt("v","Vertical"));
+    const fTi = h("select",{id:id+"-k"}, opt("","—"), opt("alta","Alta: salto brusco"), opt("baja","Baja: difuminado"));
+    const rowsShown = Math.min(N,16);
+    const el = h("div",null,
+      h("p",{text:"El patrón continúa indefinidamente. Cuenta de blanco a blanco y responde."}),
+      h("div",{class:"scroll"}, vert ? cv : cellCanvas(Math.min(N,16), N, (x,y) => val(y), Math.min(352, 16*Math.max(6,Math.floor(352/N))))),
+      h("div",{class:"kv",text:(vert ? "Una fila de píxeles: " : "Una columna de píxeles, de arriba hacia abajo: ")+line.join("  ")+"  …"}),
+      h("div",{class:"row"}, field("Período (píxeles)", fT), field("Frecuencia", fF), field("Dirección de la frecuencia", fDi), field("Tipo de cambio", fTi)));
+    void rowsShown;
+    return { el:el, grade(){
+      const vT = num(fT.value), vF = num(fF.value);
+      const a = vT === T, b = vF != null && Math.abs(vF - 1/T) <= 0.006, c = fDi.value === (vert ? "h" : "v"), d = fTi.value === (nit ? "alta" : "baja");
+      mark(fT,a); mark(fF,b); mark(fDi,c); mark(fTi,d);
+      const n = [a,b,c,d].filter(Boolean).length, fails = [];
+      if (!a) fails.push("período"); if (!b) fails.push("frecuencia"); if (!c) fails.push("dirección"); if (!d) fails.push("alta/baja");
+      const sol = h("div",{class:"kv",html:
+        "De blanco a blanco hay <b>"+T+" píxeles</b>: ese es el período.<br>"
+        + "Frecuencia = 1 / "+T+" = <b>"+fmt(1/T,4)+"</b> (ciclos por píxel en la diapositiva; el profe lo dijo en Hz).<br>"
+        + "Las franjas son "+(vert ? "verticales" : "horizontales")+": el patrón se repite al avanzar en "+(vert ? "horizontal" : "vertical")+" → dirección <b>"+(vert ? "horizontal" : "vertical")+"</b>.<br>"
+        + (nit ? "Pasa de un nivel al otro de golpe, con pendiente vertical → <b>alta</b>." : "Pasa de un nivel al otro difuminado, de a poco → <b>baja</b>.") });
+      return { ok:n===4, score:n/4, detalle:"período "+T+" "+(nit ? "nítido" : "difuminado")+(n===4 ? "" : " · falló: "+fails.join(", ")), sol:sol };
+    }};
+  }
+  const type = pick(["esc","imp","ram","pla"]), lo = pick([0,20,40]), hi = pick([200,230,255]), L = 14, vals = [];
+  const p0 = rnd(4,8), up = Math.random() < .7, A = up ? lo : hi, Bv = up ? hi : lo, len = rnd(5,6);
+  for (let x=0;x<L;x++){
+    let v;
+    if (type === "esc") v = x < p0 ? A : Bv;
+    else if (type === "imp") v = x === p0 ? Bv : A;
+    else if (type === "ram") v = x < 3 ? A : (x >= 3+len ? Bv : Math.round(A + (Bv-A)*(x-3)/len));
+    else v = A;
+    vals.push(v);
+  }
+  const cvP = h("canvas",{width:420,height:140}); drawProfile(cvP, vals);
+  const fTy = h("select",{id:id+"-ty"}, opt("","—"), opt("esc","Escalón"), opt("imp","Impulso"), opt("ram","Rampa"), opt("pla","Plano"));
+  const fHa = h("select",{id:id+"-ha"}, opt("","—"), opt("si","Sí, hay repetición"), opt("no","No, no hay repetición"));
+  const NAMES = { esc:"Escalón", imp:"Impulso", ram:"Rampa", pla:"Plano" };
+  const WHY = { esc:"Salta de un nivel al otro y se queda ahí: escalón.", imp:"Salta y vuelve de inmediato al nivel anterior: impulso. Es el caso del ruido.", ram:"Cambia de a poco a lo largo de varios píxeles: rampa, una difuminación.", pla:"No cambia nunca: plano." };
+  const el = h("div",null,
+    h("p",{text:"Esta fila de píxeles es todo lo que hay; no se repite."}),
+    h("div",{class:"stage"}, h("figure",null,h("figcaption",{text:"Píxeles"}), h("div",{class:"scroll"}, cellCanvas(L,1,x => vals[x],392))), h("figure",null,h("figcaption",{text:"Perfil"}),cvP)),
+    h("div",{class:"kv",text:"Valores: "+vals.join("  ")}),
+    h("div",{class:"row"}, field("Tipo de transición", fTy), field("¿Hay frecuencia?", fHa)));
+  return { el:el, grade(){
+    const a = fTy.value === type, b = fHa.value === "no"; mark(fTy,a); mark(fHa,b);
+    const n = (a?1:0)+(b?1:0);
+    return { ok:n===2, score:n/2, detalle:"transición "+NAMES[type]+(n===2 ? "" : " · falló: "+[a?null:"tipo", b?null:"hay frecuencia"].filter(Boolean).join(", ")),
+      sol: h("div",{class:"kv",html:"<b>"+NAMES[type]+".</b> "+WHY[type]+"<br>Para que haya frecuencia tiene que haber un patrón que se repita. Aquí no lo hay: <b>no hay frecuencia</b>."}) };
+  }};
+}
+
+/* ============ morfología ============ */
+function erode(m){
+  const n = m.length, w = m[0].length;
+  return m.map((r,i) => r.map((v,j) => { for (let a=-1;a<=1;a++) for (let b=-1;b<=1;b++){ const y=i+a, x=j+b; if (y<0||x<0||y>=n||x>=w||!m[y][x]) return 0; } return 1; }));
+}
+function dilate(m){
+  const n = m.length, w = m[0].length;
+  return m.map((r,i) => r.map((v,j) => { for (let a=-1;a<=1;a++) for (let b=-1;b<=1;b++){ const y=i+a, x=j+b; if (y>=0&&x>=0&&y<n&&x<w&&m[y][x]) return 1; } return 0; }));
+}
+const inv = m => m.map(r => r.map(v => v ? 0 : 1));
+const OPS = { ero:{n:"erosión"}, dil:{n:"dilatación"}, ape:{n:"apertura", a:"ero", b:"dil"}, cie:{n:"cierre", a:"dil", b:"ero"} };
+function morph(m, op){ return op === "ero" ? erode(m) : op === "dil" ? dilate(m) : op === "ape" ? dilate(erode(m)) : erode(dilate(m)); }
+function morphFig(m, op, fig0){ return fig0 ? inv(morph(inv(m), op)) : morph(m, op); }
+function binGrid(m, o){
+  o = o || {};
+  const t = h("table",{class:"bin"+(o.onToggle ? " edit" : "")});
+  m.forEach((row,i) => { const tr = h("tr");
+    row.forEach((v,j) => {
+      const td = h("td",{class: v ? "on" : "off", text: v ? "1" : "0"});
+      if (o.diff){ const d = o.diff(i,j); if (d) td.classList.add(d); }
+      if (o.onToggle){
+        td.tabIndex = 0; td.setAttribute("role","button");
+        const f = () => { m[i][j] = m[i][j] ? 0 : 1; td.className = m[i][j] ? "on" : "off"; td.textContent = m[i][j] ? "1" : "0"; o.onToggle(i,j); };
+        td.addEventListener("click", f);
+        td.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); f(); } });
+      }
+      tr.appendChild(td); });
+    t.appendChild(tr); });
+  return t;
+}
+const parseBin = rows => rows.map(r => r.split("").map(Number));
+const PRESETS = {
+  "Agujero y mota": ["0000000000","0111111000","0101111000","0111111000","0111111000","0111111000","0111111000","0000000000","0000000010","0000000000"],
+  "Istmo":          ["0000000000","0111001110","0111001110","0111111110","0111001110","0111001110","0000000000","0000000000","0000000000","0000000000"],
+  "Fisura":         ["0000000000","0000000000","0111011110","0111011110","0111011110","0111011110","0111111110","0111111110","0000000000","0000000000"],
+  "Ruido":          ["0000000000","0100000100","0000000000","0011111100","0011011100","0011111100","0011110100","0011111100","0000000010","0000000000"],
+  "Vacío":          ["0000000000","0000000000","0000000000","0000000000","0000000000","0000000000","0000000000","0000000000","0000000000","0000000000"]
+};
+function mountMorfLab(){
+  const root = $("morf-lab");
+  let m = parseBin(PRESETS["Agujero y mota"]), res = null, lastOp = null;
+  const sConv = h("select",{id:"ml-conv"}, opt("1","Figura = 1 (blanco)"), opt("0","Figura = 0 (negro)"));
+  const stage = h("div",{class:"stage"}), out = h("div",{class:"kv"});
+  const opBtns = Object.keys(OPS).map(k => h("button",{class:"btn",type:"button",text:OPS[k].n.charAt(0).toUpperCase()+OPS[k].n.slice(1),onclick:() => { lastOp = k; apply(); }}));
+  root.append(
+    h("div",{class:"lab-h"}, h("b",{text:"Laboratorio de morfología"}), h("span",{text:"laboratorio"})),
+    h("p",{style:"margin:0",text:"Elemento estructurante 3×3 de unos. Toca las celdas para dibujar tu propia figura."}),
+    h("div",{class:"row"}, Object.keys(PRESETS).map(p => h("button",{class:"btn",type:"button",text:p,onclick:() => { m = parseBin(PRESETS[p]); res = null; lastOp = null; draw(); }}))),
+    h("div",{class:"row"}, field("Convención", sConv), opBtns,
+      h("button",{class:"btn",type:"button",text:"Usar el resultado como entrada",onclick:() => { if (res){ m = res.map(r => r.slice()); res = null; lastOp = null; draw(); } }})),
+    stage, out);
+  sConv.addEventListener("change", () => { if (lastOp) apply(); });
+  function apply(){ res = morphFig(m, lastOp, sConv.value === "0"); draw(); }
+  function draw(){
+    const kids = [h("figure",null,h("figcaption",{text:"Entrada (editable)"}), h("div",{class:"scroll"}, binGrid(m,{onToggle:() => { if (lastOp){ res = morphFig(m, lastOp, sConv.value === "0"); drawRes(); } }})))];
+    stage.replaceChildren.apply(stage, kids);
+    drawRes();
+  }
+  function drawRes(){
+    while (stage.children.length > 1) stage.removeChild(stage.lastChild);
+    if (!res){ out.textContent = "Elige una operación. En el resultado, el borde verde marca lo que se encendió y el rojo lo que se apagó."; return; }
+    const fig0 = sConv.value === "0", o = OPS[lastOp];
+    if (o.a){
+      const mid = morphFig(m, o.a, fig0);
+      stage.appendChild(h("figure",null,h("figcaption",{text:"Intermedia: tras la "+OPS[o.a].n}), h("div",{class:"scroll"}, binGrid(mid))));
+    }
+    let on = 0, off = 0;
+    const g = binGrid(res,{diff:(i,j) => { if (res[i][j] !== m[i][j]){ if (res[i][j]){ on++; return "d-on"; } off++; return "d-off"; } return ""; }});
+    stage.appendChild(h("figure",null,h("figcaption",{text:"Resultado: "+o.n}), h("div",{class:"scroll"}, g)));
+    const tips = { ero:"La figura se encoge: todo píxel con un vecino de fondo se apaga.", dil:"La figura crece: todo píxel de fondo con un vecino de figura se enciende.",
+      ape:"Erosión y después dilatación: borra lo chico de afuera y devuelve el tamaño a lo que sobrevivió. Cuando abre no sella.", cie:"Dilatación y después erosión: tapa lo chico de adentro y devuelve el tamaño. Las motas de afuera siguen." };
+    out.innerHTML = "<b>"+o.n.charAt(0).toUpperCase()+o.n.slice(1)+"</b> con figura = "+(fig0 ? "0 (negro)" : "1 (blanco)")+". Pasaron a 1: "+on+" · pasaron a 0: "+off+".<br>"+tips[lastOp];
+  }
+  draw();
+}
+function genBin(n){
+  const m = []; for (let i=0;i<n;i++){ m.push([]); for (let j=0;j<n;j++) m[i].push(0); }
+  const r0 = rnd(1,2), c0 = rnd(1,2), r1 = rnd(n-4,n-2), c1 = rnd(n-4,n-2);
+  for (let i=r0;i<=r1;i++) for (let j=c0;j<=c1;j++) m[i][j] = 1;
+  const holes = rnd(0,2); for (let k=0;k<holes;k++) m[rnd(r0+1,r1-1)][rnd(c0+1,c1-1)] = 0;
+  const specks = rnd(1,3); for (let k=0;k<specks;k++){ const i = rnd(0,n-1), j = rnd(0,n-1); if (i < r0-1 || i > r1+1 || j < c0-1 || j > c1+1) m[i][j] = 1; }
+  if (Math.random() < .5 && r0 >= 1) m[r0-1][rnd(c0,c1)] = 1;
+  return m;
+}
+const same = (a,b) => a.every((r,i) => r.every((v,j) => v === b[i][j]));
+function MorfEx(n, onlyCompound){
+  n = n || 8;
+  let src, op, fig0, exp, tries = 0;
+  do {
+    const base = genBin(n); fig0 = Math.random() < .25; src = fig0 ? inv(base) : base;
+    op = onlyCompound ? pick(["ape","cie"]) : pick(["ero","dil","ape","ape","cie","cie"]);
+    exp = morphFig(src, op, fig0); tries++;
+  } while (tries < 40 && same(exp, src));
+  const ans = src.map(r => r.slice()), slot = h("div",{class:"scroll"});
+  const redraw = () => slot.replaceChildren(binGrid(ans,{onToggle:() => {}}));
+  const setAll = f => { for (let i=0;i<n;i++) for (let j=0;j<n;j++) ans[i][j] = f(i,j); redraw(); };
+  redraw();
+  const conv = fig0
+    ? "<strong>Ojo con la convención:</strong> aquí la figura es el <strong>0 (negro)</strong> sobre fondo 1 (blanco). Lo de afuera de la matriz es fondo."
+    : "Convención: figura = <strong>1 (blanco)</strong> sobre fondo 0 (negro). Lo de afuera de la matriz es fondo.";
+  const el = h("div",null,
+    h("p",{html:conv+" Aplica <strong>"+OPS[op].n+"</strong>"+(fig0 ? " a la figura" : "")+" con elemento estructurante 3×3 de unos."}),
+    h("div",{class:"stage"},
+      h("figure",null,h("figcaption",{text:"Original"}), h("div",{class:"scroll"}, binGrid(src))),
+      h("figure",null,h("figcaption",{text:"Tu respuesta: toca para cambiar"}), slot)),
+    h("div",{class:"row"},
+      h("button",{class:"btn",type:"button",text:"Volver al original",onclick:() => setAll((i,j) => src[i][j])}),
+      h("button",{class:"btn",type:"button",text:"Todo en 0",onclick:() => setAll(() => 0)}),
+      h("button",{class:"btn",type:"button",text:"Todo en 1",onclick:() => setAll(() => 1)})));
+  return { el:el, grade(){
+    let bad = 0, need = 0;
+    for (let i=0;i<n;i++) for (let j=0;j<n;j++){ if (ans[i][j] !== exp[i][j]) bad++; if (src[i][j] !== exp[i][j]) need++; }
+    const st = h("div",{class:"stage"}), o = OPS[op];
+    if (o.a) st.appendChild(h("figure",null,h("figcaption",{text:"Intermedia: tras la "+OPS[o.a].n}), h("div",{class:"scroll"}, binGrid(morphFig(src, o.a, fig0)))));
+    st.appendChild(h("figure",null,h("figcaption",{text:"Resultado correcto"+(bad ? " (en rojo, donde difiere el tuyo)" : "")}), h("div",{class:"scroll"}, binGrid(exp,{diff:(i,j) => ans[i][j] !== exp[i][j] ? "d-off" : ""}))));
+    const txt = (o.a ? o.n.charAt(0).toUpperCase()+o.n.slice(1)+" = "+OPS[o.a].n+" y después "+OPS[o.b].n+". " : "")
+      + (fig0 ? "Con figura negra, erosionar la figura hace crecer el blanco y dilatarla lo hace retroceder: es el error de fondo y figura que advirtió el profe. " : "")
+      + (bad ? bad+" celdas distintas." : "");
+    return { ok:bad===0, score:Math.max(0, 1 - bad/Math.max(1,need)), detalle:o.n+(fig0 ? " con figura negra" : "")+(bad ? " · "+bad+" celdas mal" : ""), sol:h("div",null, h("div",{class:"kv",text:txt || "Todas las celdas coinciden."}), st) };
+  }};
+}
+
+/* ============ mediana ============ */
+function MedEx(){
+  const base = rnd(40,180), v = []; for (let i=0;i<9;i++) v.push(base + rnd(-6,6));
+  v[rnd(0,8)] = pick([0,255]); if (Math.random() < .3) v[rnd(0,8)] = pick([0,255]);
+  const m = [v.slice(0,3), v.slice(3,6), v.slice(6,9)], sorted = v.slice().sort((a,b) => a-b), med = sorted[4], mean = v.reduce((a,b) => a+b, 0)/9, id = newId("mx");
+  const fM = h("input",{type:"text",inputmode:"numeric",id:id+"-m",autocomplete:"off"}), fP = h("input",{type:"text",inputmode:"numeric",id:id+"-p",autocomplete:"off"});
+  const el = h("div",null,
+    h("p",{text:"Vecindario 3×3 con ruido impulsivo. Calcula el valor nuevo del píxel central con cada filtro."}),
+    h("div",{class:"stage"}, fig("Vecindario", mxTable(m,{gray:true}))),
+    h("div",{class:"row"}, field("Con filtro de mediana", fM), field("Con filtro de media (redondeado)", fP)));
+  return { el:el, grade(){
+    const a = num(fM.value) === med, vp = num(fP.value), b = vp != null && Math.abs(vp-mean) <= 1; mark(fM,a); mark(fP,b);
+    const n = (a?1:0)+(b?1:0);
+    return { ok:n===2, score:n/2, detalle:"mediana 3×3"+(n===2 ? "" : " · falló: "+[a?null:"mediana", b?null:"media"].filter(Boolean).join(", ")),
+      sol:h("div",{class:"kv",html:"Ordenados: "+sorted.map((x,i) => i===4 ? "<b>["+x+"]</b>" : x).join("  ")+"<br>Mediana = el quinto de nueve = <b>"+med+"</b>. El valor extremo queda en una punta y nunca al medio.<br>Media = "+v.reduce((a,b) => a+b,0)+" / 9 ≈ <b>"+Math.round(mean)+"</b>: el ruido se reparte en el promedio."}) };
+  }};
+}
+
+/* ============ ¿qué kernel es? ============ */
+function kirsch(rot){
+  const ring = [[0,0],[0,1],[0,2],[1,2],[2,2],[2,1],[2,0],[1,0]], k = [[0,0,0],[0,0,0],[0,0,0]];
+  ring.forEach((p,i) => { const q = ((i-rot)%8+8)%8; k[p[0]][p[1]] = (q>=2 && q<=4) ? 5 : -3; });
+  return k;
+}
+const KNAMES = ["Sobel","Prewitt","Roberts Cross","Kirsch","Gaussiano","Media"];
+function KernelEx(){
+  const c = pick([
+    {n:"Sobel", k:K[pick(["sobelx","sobely"])].k, w:"3×3 con peso 2 en la fila o columna central: Sobel. Suma cero, no se normaliza."},
+    {n:"Prewitt", k:K[pick(["prewx","prewy"])].k, w:"3×3 con pesos uniformes de 1: Prewitt. Suma cero, no se normaliza."},
+    {n:"Roberts Cross", k:pick([[[1,0],[0,-1]],[[0,1],[-1,0]]]), w:"Es de 2×2: el único es Roberts Cross. Suma cero, no se normaliza."},
+    {n:"Kirsch", k:kirsch(rnd(0,7)), w:"Tres 5 seguidos y cinco −3: una de las ocho máscaras de brújula de Kirsch. 15 − 15 = 0, no se normaliza."},
+    {n:"Gaussiano", k:K.gauss.k, w:"Cruz de 2 y centro 4: gaussiano. Suma 16, se multiplica por 1/16."},
+    {n:"Media", k:K.media.k, w:"Puros unos: media. Suma 9, se multiplica por 1/9."}
+  ]);
+  const nrm = norma(c.k), id = newId("kx");
+  const fN = h("select",{id:id+"-n"}, opt("","—"), KNAMES.map(n => opt(n,n)));
+  const fZ = h("select",{id:id+"-z"}, opt("","—"), opt("si","Sí, se divide por la suma"), opt("no","No: la suma es cero"));
+  const el = h("div",null, h("div",{class:"stage"}, fig("Máscara", mxTable(c.k))), h("div",{class:"row"}, field("¿Qué operador es?", fN), field("¿Se normaliza?", fZ)));
+  return { el:el, grade(){
+    const a = fN.value === c.n, b = fZ.value === (nrm !== 0 ? "si" : "no"); mark(fN,a); mark(fZ,b);
+    const n = (a?1:0)+(b?1:0);
+    return { ok:n===2, score:n/2, detalle:"reconocer kernel "+c.n+(n===2 ? "" : " · falló: "+[a?null:"nombre (dijo "+(fN.value||"nada")+")", b?null:"normalizar"].filter(Boolean).join(", ")), sol:h("div",{class:"kv",text:c.w}) };
+  }};
+}
+
+/* ============ laboratorios de la Solemne 1 ============ */
+function nmRGB(w){
+  let r=0, g=0, b=0;
+  if (w < 440){ r = (440-w)/60; b = 1; } else if (w < 490){ g = (w-440)/50; b = 1; } else if (w < 510){ g = 1; b = (510-w)/20; }
+  else if (w < 580){ r = (w-510)/70; g = 1; } else if (w < 645){ r = 1; g = (645-w)/65; } else { r = 1; }
+  return [r,g,b].map(v => Math.round(255*Math.pow(clamp(v,0,1),0.8)));
+}
+function arrow(c, x1, y1, x2, y2, col, w){
+  const a = Math.atan2(y2-y1, x2-x1);
+  c.strokeStyle = col; c.fillStyle = col; c.lineWidth = w || 3; c.lineCap = "round";
+  c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2); c.stroke();
+  c.beginPath(); c.moveTo(x2,y2); c.lineTo(x2-12*Math.cos(a-.4), y2-12*Math.sin(a-.4)); c.lineTo(x2-12*Math.cos(a+.4), y2-12*Math.sin(a+.4)); c.closePath(); c.fill();
+}
+/* Aplicaciones por ingeniería: literal de la diapositiva 3, mismo orden y numeración que la pauta de la 5 */
+const APPS = [
+  {ing:"Ingeniería Civil Industrial", items:["Clasificación Industrial","Logística – Análisis de desperfectos en palets","Packaging – Lectura de códigos de barras – Trazabilidad"]},
+  {ing:"Ingeniería Industrial", items:["Metrología y calidad","Alimentación – Color y medida de fruta","Automoción – Clasificación y medida de autopartes","Madera – Evaluación de color y defectos"]},
+  {ing:"Ingeniería en Logística y Transporte", items:["Inspección de las vías de ferrocarril","Crash – Cámaras de alta velocidad – \"Slow Motion\"","Tráfico – Identificación de matrículas y modelos","Transporte – Cámaras en automóviles"]},
+  {ing:"Ingeniería en Automatización y Robótica", items:["Navegación en robótica (AGV)","Pick and place"]},
+  {ing:"Ingeniería en Seguridad y Prevención de Riesgos", items:["Antropometría y ergonomía","Biometría – Identificación – Facial, Iris,…","Seguridad/Vigilancia – Control de objetos abandonados en aeropuertos","Construcción – Fugas de calor en edificios mediante cámaras térmicas"]},
+  /* áreas que la lámina pone aparte de las cinco ingenierías: cada una con su nombre */
+  {ing:"Biología, geología, meteorología, astronomía", area:true, items:["Biología, geología, meteorología, astronomía"]},
+  {ing:"Forense", area:true, items:["Forense – Identificación de huellas dactilares"]},
+  {ing:"Medicina", area:true, items:["Medicina – Cámaras en sistemas de oftalmología"]},
+  {ing:"Microscopía", area:true, items:["Microscopía – Cámaras para fluorescencia"]},
+  {ing:"Minería", area:true, items:["Minería – Control 3D de tamaño de rocas"]}
+];
+/* q: lo que se muestra en el ejercicio de ubicar. En las áreas se quita el nombre del área, que delataría la respuesta */
+const APPS_FLAT = []; APPS.forEach(g => g.items.forEach(t => APPS_FLAT.push({t:t, ing:g.ing, n:APPS_FLAT.length+1, q: g.area ? t.split(" – ").slice(1).join(" – ") : t})));
+
+function mountApps(){
+  const tb = $("apps-table");
+  setKids(tb, h("tr",null, h("th",{text:"Ingeniería o área"}), h("th",{text:"Aplicaciones (n.º en la pauta)"})),
+    APPS.map(g => h("tr",null, h("td",null, h("strong",{text:g.ing})),
+      h("td",null, g.items.map((t,i) => [h("span",{class:"m",text:APPS_FLAT.find(a => a.t === t).n+". "}), t, i < g.items.length-1 ? h("br") : null])))));
+  const root = $("apps-game"), body = h("div");
+  const bA = h("button",{class:"btn",type:"button",text:"¿De qué ingeniería es?"}), bB = h("button",{class:"btn",type:"button",text:"Escríbelas de memoria"});
+  bA.textContent = "¿De qué ingeniería o área es?";
+  root.append(h("div",{class:"lab-h"}, h("b",{text:"Memorizar las 22"}), h("span",{text:"ejercicio"})), h("div",{class:"row"}, bA, bB), body);
+  bA.addEventListener("click", () => { bA.setAttribute("aria-pressed","true"); bB.setAttribute("aria-pressed","false"); clasificar(); });
+  bB.addEventListener("click", () => { bB.setAttribute("aria-pressed","true"); bA.setAttribute("aria-pressed","false"); recordar(); });
+
+  function clasificar(){
+    const ronda = shuffle(APPS_FLAT.filter(a => a.q)).slice(0,11); let i = 0, ok = 0; const fallas = [];
+    function next(){
+      if (i === ronda.length){
+        setKids(body, h("div",{class:"verdict "+(ok === ronda.length ? "ok" : "bad")}, h("h4",{text:ok+" de "+ronda.length+" bien ubicadas"}),
+          fallas.length ? h("ul",null, fallas.map(f => h("li",null, f.t+" → ", h("strong",{text:f.ing})))) : h("p",{text:"Sin errores."}),
+          h("button",{class:"btn pri",type:"button",text:"Otra ronda",onclick:clasificar})));
+        return;
+      }
+      const it = ronda[i], box = h("div",{class:"opts"}), after = h("div");
+      const btns = APPS.map(g => { const b = h("button",{class:"opt",type:"button",text:g.ing}); b.addEventListener("click", () => pickIt(g.ing)); box.appendChild(b); return b; });
+      setKids(body, h("div",{class:"meter"}, h("span",{text:"Aplicación "+(i+1)+" de "+ronda.length}), h("span",{text:ok+" bien"})), h("p",{class:"q",text:it.q}), box, after);
+      function pickIt(ing){
+        const good = ing === it.ing; if (good) ok++; else fallas.push(it);
+        btns.forEach(b => { b.disabled = true; if (b.textContent === it.ing) b.classList.add("right"); else if (b.textContent === ing) b.classList.add("miss"); });
+        registrar("teoria-s1", "aplicaciones · ubicar: "+it.t+(good ? "" : " · dijo: "+ing), good);
+        setKids(after, h("div",{class:"row"}, h("button",{class:"btn pri",type:"button",text: i === ronda.length-1 ? "Ver resultado" : "Siguiente",onclick:() => { i++; next(); }})));
+        after.querySelector("button").focus();
+      }
+    }
+    next();
+  }
+
+  function recordar(){
+    const sel = h("select",{id:"apps-ing"}, APPS.map((g,k) => opt(String(k), g.ing+" ("+g.items.length+")")));
+    const ta = h("textarea",{id:"apps-txt",rows:"5",style:"width:100%;max-width:620px;font:400 1rem/1.5 var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px"});
+    const out = h("div"), bC = h("button",{class:"btn pri",type:"button",text:"Comparar con la lámina"});
+    setKids(body,
+      h("p",{text:"Elige una ingeniería y escribe sus aplicaciones como las escribirías en la prueba. Después compara y marca solo las que pusiste literal."}),
+      h("div",{class:"row"}, field("Ingeniería", sel)), ta, h("div",{class:"row"}, bC), out);
+    sel.addEventListener("change", () => { out.replaceChildren(); ta.value = ""; bC.disabled = false; });
+    bC.addEventListener("click", () => {
+      const g = APPS[+sel.value]; bC.disabled = true;
+      const checks = g.items.map((t,k) => h("input",{type:"checkbox",id:"apps-c"+k}));
+      const save = h("button",{class:"btn pri",type:"button",text:"Guardar resultado"});
+      setKids(out, h("div",{class:"verdict ok"}, h("h4",{text:g.ing}),
+        g.items.map((t,k) => h("label",{style:"display:flex;gap:8px;align-items:flex-start;padding:4px 0"}, checks[k], h("span",null, h("span",{class:"m",text:APPS_FLAT.find(a => a.t === t).n+". "}), t))),
+        h("div",{class:"row"}, save)));
+      save.addEventListener("click", () => {
+        const n = checks.filter(c => c.checked).length, all = n === g.items.length;
+        registrar("teoria-s1", "aplicaciones · escribir "+g.ing+": "+n+" de "+g.items.length+(all ? "" : " · faltó: "+g.items.filter((t,k) => !checks[k].checked).join("; ")), all);
+        save.disabled = true; save.textContent = n+" de "+g.items.length+" guardado";
+      });
+    });
+  }
+  bA.click();
+}
+
+function mountS1(){
+  mountApps();
+  /* bits */
+  const bits = $("bits"), bcv = $("bits-cv"), bout = $("bits-out");
+  function drawBits(){
+    const b = +bits.value, lv = Math.pow(2,b), c = bcv.getContext("2d");
+    for (let x=0;x<512;x++){ const q = Math.floor(x/512*lv), g = Math.round(q/(lv-1)*255); c.fillStyle = "rgb("+g+","+g+","+g+")"; c.fillRect(x,0,1,48); }
+    bout.textContent = b+" bits → "+lv+" niveles, de 0 a "+(lv-1)+(b === 1 ? " · imagen binaria" : b === 8 ? " · lo normal" : "");
+  }
+  bits.addEventListener("input", drawBits); drawBits();
+
+  /* espectro */
+  const nm = $("nm"), ncv = $("nm-cv"), nout = $("nm-out");
+  function drawNm(){
+    const w = +nm.value, c = ncv.getContext("2d"), Wd = ncv.width;
+    for (let x=0;x<Wd;x++){
+      const l = 250 + x/Wd*600;
+      if (l < 400 || l > 700) c.fillStyle = "#23283a"; else { const q = nmRGB(l); c.fillStyle = "rgb("+q[0]+","+q[1]+","+q[2]+")"; }
+      c.fillRect(x,0,1,56);
+    }
+    c.fillStyle = "#dfe4f2"; c.font = "12px monospace"; c.textAlign = "center";
+    c.fillText("ULTRAVIOLETA", (400-250)/600*Wd/2, 32); c.fillText("INFRARROJO", Wd-(850-700)/600*Wd/2, 32);
+    const xm = (w-250)/600*Wd; c.fillStyle = "#ffffff"; c.fillRect(xm-2,0,4,56); c.fillStyle = "#0b0e16"; c.fillRect(xm-.5,0,1,56);
+    const lab = w < 400 ? "ultravioleta, no visible" : w > 700 ? "infrarrojo, no visible" : "visible · " + (w < 450 ? "violeta" : w < 495 ? "azul" : w < 570 ? "verde" : w < 590 ? "amarillo" : w < 620 ? "naranjo" : "rojo");
+    nout.textContent = w+" nm · "+lab;
+  }
+  nm.addEventListener("input", drawNm); drawNm();
+
+  /* cadena radiométrica */
+  const ORD = ["Fuente de energía","Medio","Interacción con la materia","Sensor"], cad = $("cadena");
+  function newCadena(){
+    const seq = [], chips = h("div",{class:"chips"}), out = h("div");
+    shuffle(ORD).forEach(name => {
+      const b = h("button",{class:"chip",type:"button",text:name});
+      b.addEventListener("click", () => {
+        if (b.classList.contains("sel") || seq.length === 4) return;
+        seq.push(name); b.classList.add("sel"); b.replaceChildren(h("b",{text:String(seq.length)}), name);
+        if (seq.length === 4){
+          const ok = seq.every((s,i) => s === ORD[i]);
+          out.replaceChildren(h("div",{class:"verdict "+(ok ? "ok" : "bad")}, h("h4",{text: ok ? "Correcto" : "No es ese orden"}),
+            h("p",{style:"margin:0 0 8px",text:"Fuente de energía → medio → interacción con la materia → sensor. Lo primero siempre es la energía."}),
+            h("button",{class:"btn",type:"button",text:"Otra vez",onclick:newCadena})));
+          registrar("teoria-s1", "ordenar cadena radiométrica"+(ok ? "" : " · puso: "+seq.join(" > ")), ok);
+        }
+      });
+      chips.appendChild(b);
+    });
+    cad.replaceChildren(chips, out);
+  }
+  newCadena();
+
+  /* cuerpos */
+  const BODIES = {
+    negro:{n:"Cuerpo negro", t:"Toda la energía es <b>absorbida</b>. No sale nada: ni reflejado ni transmitido."},
+    ventana:{n:"Ventana ideal", t:"Toda la energía es <b>transmitida</b>. Atraviesa sin atenuarse y el cuerpo no emite nada propio."},
+    opaco:{n:"Cuerpo opaco", t:"La energía <b>no lo atraviesa</b>. Toda es reflejada o emitida por el propio cuerpo."},
+    espejo:{n:"Espejo", t:"Toda la energía es <b>reflejada</b>."}
+  };
+  let body = "negro"; const ccv = $("cuerpos-cv"), cbtn = $("cuerpos-btn"), ctxt = $("cuerpos-txt");
+  function drawBody(){
+    const c = ccv.getContext("2d"), ink = cssv("--ink"), acc = cssv("--accent"), warn = cssv("--warn"), mut = cssv("--muted");
+    c.clearRect(0,0,560,220);
+    c.fillStyle = body === "negro" ? "#05070c" : body === "ventana" ? cssv("--accent-soft") : body === "espejo" ? cssv("--surface-2") : cssv("--muted");
+    c.fillRect(250,20,60,180); c.strokeStyle = ink; c.lineWidth = 1.5; c.strokeRect(250,20,60,180);
+    arrow(c, 40, 40, 248, 108, acc, 4);
+    c.font = "12px monospace"; c.fillStyle = mut; c.textAlign = "left"; c.fillText("rayo incidente", 40, 30);
+    if (body === "ventana"){ arrow(c, 312, 129, 520, 196, acc, 4); c.fillText("transmitido", 420, 150); }
+    if (body === "espejo" || body === "opaco"){ arrow(c, 248, 112, 40, 180, acc, body === "espejo" ? 4 : 2.5); c.fillText("reflejado", 40, 200); }
+    if (body === "opaco"){ [60,110,160].forEach(y => arrow(c, 246, y, 196, y, warn, 2)); c.fillStyle = warn; c.fillText("emitido", 150, 54); }
+    if (body === "negro"){ c.fillStyle = "#c9d0e2"; c.textAlign = "center"; c.fillText("absorbe", 280, 114); }
+    ctxt.innerHTML = "<b>"+BODIES[body].n+".</b> "+BODIES[body].t;
+    Array.prototype.forEach.call(cbtn.children, b => b.setAttribute("aria-pressed", b.dataset.k === body ? "true" : "false"));
+  }
+  Object.keys(BODIES).forEach(k => { const b = h("button",{class:"btn",type:"button",text:BODIES[k].n,onclick:() => { body = k; drawBody(); }}); b.dataset.k = k; cbtn.appendChild(b); });
+  drawBody();
+
+  /* Snell */
+  const sn1 = $("sn1"), sn2 = $("sn2"), sth = $("sth"), scv = $("snell-cv"), stx = $("snell-txt");
+  function drawSnell(){
+    const n1 = sn1.value/100, n2 = sn2.value/100, t1 = +sth.value, r1 = t1*Math.PI/180, s2 = n1*Math.sin(r1)/n2;
+    $("sn1o").textContent = fmt(n1); $("sn2o").textContent = fmt(n2); $("stho").textContent = t1+"°";
+    const c = scv.getContext("2d"), cx = 280, cy = 150, L = 135, ink = cssv("--ink"), acc = cssv("--accent"), mut = cssv("--muted");
+    c.clearRect(0,0,560,300);
+    c.fillStyle = cssv("--accent-soft"); c.fillRect(0,cy,560,150);
+    c.strokeStyle = ink; c.lineWidth = 1.5; c.beginPath(); c.moveTo(0,cy); c.lineTo(560,cy); c.stroke();
+    c.setLineDash([5,5]); c.strokeStyle = mut; c.beginPath(); c.moveTo(cx,10); c.lineTo(cx,290); c.stroke(); c.setLineDash([]);
+    c.font = "12px monospace"; c.fillStyle = mut; c.textAlign = "left";
+    c.fillText("medio 1 · n₁ = "+fmt(n1), 12, 22); c.fillText("medio 2 · n₂ = "+fmt(n2), 12, 286); c.fillText("normal", cx+6, 22);
+    arrow(c, cx-L*Math.sin(r1), cy-L*Math.cos(r1), cx, cy, acc, 4);
+    let txt;
+    if (s2 <= 1){
+      const r2 = Math.asin(s2), t2 = r2*180/Math.PI;
+      arrow(c, cx, cy, cx+L*Math.sin(r2), cy+L*Math.cos(r2), acc, 4);
+      txt = fmt(n1)+" · sen("+t1+"°) = "+fmt(n2)+" · sen(<b>"+fmt(t2,1)+"°</b>)<br>"
+        + (Math.abs(n1-n2) < .005 ? "Mismo índice: el rayo no se desvía." : n2 > n1 ? "Entra a un medio de índice mayor: el rayo <b>se acerca</b> a la normal." : "Entra a un medio de índice menor: el rayo <b>se aleja</b> de la normal.");
+    } else {
+      arrow(c, cx, cy, cx+L*Math.sin(r1), cy-L*Math.cos(r1), acc, 4);
+      txt = "Con estos valores sen(θ₂) daría "+fmt(s2)+", mayor que 1: no hay rayo refractado y la luz se refleja. Este caso no aparece en tus apuntes.";
+    }
+    stx.innerHTML = txt;
+  }
+  [sn1,sn2,sth].forEach(e => e.addEventListener("input", drawSnell)); drawSnell();
+}
+
+/* reemplaza los hijos aceptando arreglos y saltándose los nulos */
+function setKids(el){
+  const k = Array.prototype.slice.call(arguments, 1).flat(3).filter(x => x != null && x !== false);
+  el.replaceChildren.apply(el, k);
+}
+
+/* ============ imágenes sintéticas para las demostraciones ============ */
+const W = 96;
+function mulberry(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function gauss01(r){ let u = 0; while (u === 0) u = r(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*r()); }
+function sceneShapes(){
+  const a = new Float32Array(W*W);
+  for (let y=0;y<W;y++) for (let x=0;x<W;x++){
+    let v = 45;
+    if (x>=10 && x<40 && y>=10 && y<40) v = 205;
+    const dx = x-68, dy = y-26; if (dx*dx+dy*dy <= 196) v = 150;
+    if (x>=8 && x<42 && y>=52 && y<86 && Math.abs((x-8)-(y-52)) <= 1) v = 235;
+    if (x>=52 && x<88 && y>=54 && y<84) v = 45 + (x-52)/36*190;
+    a[y*W+x] = v;
+  }
+  return a;
+}
+const at = (a,x,y) => a[clamp(y,0,W-1)*W + clamp(x,0,W-1)];
+function conv(a, k){
+  const n = k.length, r = (n-1) >> 1, o = new Float32Array(W*W);
+  for (let y=0;y<W;y++) for (let x=0;x<W;x++){ let s = 0; for (let j=0;j<n;j++) for (let i=0;i<n;i++) s += k[j][i]*at(a, x+i-r, y+j-r); o[y*W+x] = s; }
+  return o;
+}
+const scaleArr = (a,f) => { const o = new Float32Array(a.length); for (let i=0;i<a.length;i++) o[i] = a[i]*f; return o; };
+const blurG = a => scaleArr(conv(a, K.gauss.k), 1/16);
+const blurM = a => scaleArr(conv(a, K.media.k), 1/9);
+function median3(a){
+  const o = new Float32Array(W*W), v = new Array(9);
+  for (let y=0;y<W;y++) for (let x=0;x<W;x++){ let n = 0; for (let j=-1;j<=1;j++) for (let i=-1;i<=1;i++) v[n++] = at(a,x+i,y+j); v.sort((p,q) => p-q); o[y*W+x] = v[4]; }
+  return o;
+}
+function paint(cv, a){
+  const c = cv.getContext("2d"), d = c.createImageData(W,W);
+  for (let i=0;i<W*W;i++){ const g = clamp(Math.round(a[i]),0,255); d.data[i*4] = d.data[i*4+1] = d.data[i*4+2] = g; d.data[i*4+3] = 255; }
+  c.putImageData(d,0,0);
+}
+function minmax(a){ let mn = Infinity, mx = -Infinity; for (let i=0;i<a.length;i++){ if (a[i]<mn) mn=a[i]; if (a[i]>mx) mx=a[i]; } const d = (mx-mn) || 1, o = new Float32Array(a.length); for (let i=0;i<a.length;i++) o[i] = (a[i]-mn)*255/d; return o; }
+function toMax(a){ let mx = 0; for (let i=0;i<a.length;i++) if (a[i]>mx) mx = a[i]; return scaleArr(a, 255/(mx||1)); }
+function mag(gx, gy){ const o = new Float32Array(gx.length); for (let i=0;i<gx.length;i++) o[i] = Math.sqrt(gx[i]*gx[i]+gy[i]*gy[i]); return o; }
+function addNoise(a, kind, amt, seed){
+  const r = mulberry(seed), o = new Float32Array(a.length);
+  for (let i=0;i<a.length;i++){
+    if (kind === "sp") o[i] = r() < amt ? (r() < .5 ? 255 : 0) : a[i];
+    else o[i] = clamp(a[i] + amt*gauss01(r), 0, 255);
+  }
+  return o;
+}
+function canny(a, passes){
+  let s = a; for (let p=0;p<passes;p++) s = blurG(s);
+  const gx = conv(s, K.sobelx.k), gy = conv(s, K.sobely.k), m = mag(gx,gy), nms = new Float32Array(W*W);
+  for (let y=0;y<W;y++) for (let x=0;x<W;x++){
+    const i = y*W+x, d = ((Math.atan2(gy[i],gx[i])*180/Math.PI % 180) + 180) % 180; let dx, dy;
+    if (d < 22.5 || d >= 157.5){ dx=1; dy=0; } else if (d < 67.5){ dx=1; dy=1; } else if (d < 112.5){ dx=0; dy=1; } else { dx=-1; dy=1; }
+    if (m[i] >= at(m,x+dx,y+dy) && m[i] >= at(m,x-dx,y-dy)) nms[i] = m[i];
+  }
+  const HI = 180, LO = 90, out = new Float32Array(W*W), stack = [];
+  for (let i=0;i<W*W;i++) if (nms[i] >= HI){ out[i] = 255; stack.push(i); }
+  while (stack.length){
+    const i = stack.pop(), x = i % W, y = (i-x)/W;
+    for (let j=-1;j<=1;j++) for (let k=-1;k<=1;k++){ const xx = x+k, yy = y+j; if (xx<0||yy<0||xx>=W||yy>=W) continue; const q = yy*W+xx; if (!out[q] && nms[q] >= LO){ out[q] = 255; stack.push(q); } }
+  }
+  return out;
+}
+const pxCanvas = () => h("canvas",{class:"px",width:W,height:W});
+const cfig = (cap, cv) => h("figure",null, h("figcaption",{text:cap}), cv);
+
+function mountBordes(){
+  const root = $("bord-demo"), base = sceneShapes();
+  const sOp = h("select",{id:"bd-op"}, opt("sx","Sobel Gx"), opt("sy","Sobel Gy"), opt("sm","Sobel, magnitud"), opt("pm","Prewitt, magnitud"), opt("ro","Roberts Cross"), opt("ki","Kirsch, 8 máscaras"), opt("ca","Canny"));
+  const rN = h("input",{type:"range",id:"bd-n",min:"0",max:"40",step:"5",value:"0"}), oN = h("output");
+  const rB = h("input",{type:"range",id:"bd-b",min:"0",max:"12",value:"1"}), oB = h("output");
+  const fB = h("label",{class:"field"},"Suavizado previo de Canny", rB, oB);
+  const cvA = pxCanvas(), cvB = pxCanvas(), out = h("div",{class:"kv"});
+  root.append(
+    h("div",{class:"lab-h"}, h("b",{text:"Cada operador sobre la misma imagen"}), h("span",{text:"laboratorio"})),
+    h("p",{style:"margin:0",text:"La escena tiene un cuadrado, un círculo, una línea diagonal y una rampa de grises. Sube el ruido para ver quién aguanta."}),
+    h("div",{class:"row"}, field("Operador", sOp), h("label",{class:"field"},"Ruido en la imagen", rN, oN), fB),
+    h("div",{class:"stage"}, cfig("Imagen de entrada", cvA), cfig("Resultado", cvB)), out);
+  const NOTE = {
+    sx:"Gx responde al cambio al avanzar en horizontal: marca los <b>bordes verticales</b>. Gris medio es «sin cambio»; blanco y negro son cambios de signo contrario. Para mostrarlo se usó el mismo escalamiento del ejercicio 1: restar el mínimo y regla de tres.",
+    sy:"Gy responde al cambio al avanzar en vertical: marca los <b>bordes horizontales</b>. Los lados verticales del cuadrado desaparecen.",
+    sm:"Magnitud con Gx y Gy. Bordes <b>gruesos</b>, bien marcados en verticales y horizontales. La rampa casi no aparece: es un cambio lento, baja frecuencia.",
+    pm:"Igual que Sobel pero con pesos uniformes. Compara con Sobel subiendo el ruido: sin el 2 central suaviza menos.",
+    ro:"Máscara de 2×2 que trabaja en diagonal. Borde <b>fino</b>, respuesta más débil y muy sensible al ruido.",
+    ki:"Se aplican las ocho máscaras y queda la respuesta máxima. Responde fuerte en todas las direcciones; cuesta ocho convoluciones.",
+    ca:"Suavizado, gradiente, supresión de no máximos e histéresis. Bordes de <b>un píxel</b> y contornos cerrados. Sube el suavizado previo: los bordes débiles van desapareciendo, y con mucho no encuentra casi nada."
+  };
+  function draw(){
+    const n = +rN.value, op = sOp.value, src = n ? addNoise(base,"g",n,7) : base;
+    oN.textContent = n ? "σ = "+n : "sin ruido"; oB.textContent = rB.value+" pasadas"; fB.hidden = op !== "ca";
+    paint(cvA, src);
+    let res;
+    if (op === "sx") res = minmax(conv(src,K.sobelx.k));
+    else if (op === "sy") res = minmax(conv(src,K.sobely.k));
+    else if (op === "sm") res = toMax(mag(conv(src,K.sobelx.k), conv(src,K.sobely.k)));
+    else if (op === "pm") res = toMax(mag(conv(src,K.prewx.k), conv(src,K.prewy.k)));
+    else if (op === "ro"){
+      const o = new Float32Array(W*W);
+      for (let y=0;y<W;y++) for (let x=0;x<W;x++){ const a = at(src,x,y)-at(src,x+1,y+1), b = at(src,x+1,y)-at(src,x,y+1); o[y*W+x] = Math.sqrt(a*a+b*b); }
+      res = toMax(o);
+    } else if (op === "ki"){
+      const o = new Float32Array(W*W);
+      for (let r=0;r<8;r++){ const c = conv(src, kirsch(r)); for (let i=0;i<o.length;i++) if (c[i] > o[i]) o[i] = c[i]; }
+      res = toMax(o);
+    } else res = canny(src, +rB.value);
+    paint(cvB, res); out.innerHTML = NOTE[op];
+  }
+  [sOp,rN,rB].forEach(e => e.addEventListener("input", draw)); draw();
+  practice($("bord-game"), "¿Qué máscara es?", KernelEx, "teoria-s2");
+}
+
+function mountFiltros(){
+  const root = $("filt-demo"), base = sceneShapes(); let seed = 3;
+  const sR = h("select",{id:"fd-r"}, opt("sp","Sal y pimienta"), opt("g","Ruido gaussiano"));
+  const sF = h("select",{id:"fd-f"}, opt("med","Mediana 3×3"), opt("gau","Gaussiano 3×3"), opt("mea","Media 3×3"));
+  const cvA = pxCanvas(), cvB = pxCanvas(), cvC = pxCanvas(), out = h("div",{class:"kv"});
+  root.append(
+    h("div",{class:"lab-h"}, h("b",{text:"Qué filtro limpia qué ruido"}), h("span",{text:"laboratorio"})),
+    h("div",{class:"row"}, field("Ruido", sR), field("Filtro", sF), h("button",{class:"btn",type:"button",text:"Otro ruido",onclick:() => { seed++; draw(); }})),
+    h("div",{class:"stage"}, cfig("Original", cvA), cfig("Con ruido", cvB), cfig("Filtrada", cvC)), out);
+  const mae = (a,b) => { let s = 0; for (let i=0;i<a.length;i++) s += Math.abs(a[i]-b[i]); return s/a.length; };
+  function draw(){
+    const noisy = sR.value === "sp" ? addNoise(base,"sp",0.08,seed) : addNoise(base,"g",25,seed);
+    const f = sF.value === "med" ? median3(noisy) : sF.value === "gau" ? blurG(noisy) : blurM(noisy);
+    paint(cvA, base); paint(cvB, noisy); paint(cvC, f);
+    const e0 = mae(noisy,base), e1 = mae(f,base);
+    let why;
+    if (sR.value === "sp") why = sF.value === "med" ? "La mediana ordena: el punto blanco o negro queda en un extremo y nunca al medio. El ruido desaparece y los bordes siguen nítidos."
+      : "Este filtro promedia: cada punto de ruido se reparte entre sus vecinos y queda una mancha. Por eso el profe dice que es ineficaz contra sal y pimienta.";
+    else why = sF.value === "med" ? "Contra ruido suave la mediana ayuda, pero aquí el promedio ponderado funciona tan bien o mejor." : "Promediar atenúa el ruido suave. El costo es el de siempre: los bordes se difuminan un poco.";
+    out.innerHTML = "Error medio contra la original: con ruido <b>"+fmt(e0,1)+"</b> → filtrada <b>"+fmt(e1,1)+"</b> niveles de gris.<br>"+why;
+  }
+  [sR,sF].forEach(e => e.addEventListener("input", draw)); draw();
+  practice($("filt-ex"), "Mediana contra media, a mano", MedEx, "filtros");
+}
+
+function sceneDoc(shadow){
+  const r = mulberry(11), a = new Float32Array(W*W), t = new Uint8Array(W*W);
+  for (let i=0;i<W*W;i++) a[i] = 215;
+  for (let line=0; line<7; line++){
+    const y0 = 8 + line*12; let x = 6;
+    while (x < W-8){
+      const len = 3 + Math.floor(r()*9), x1 = Math.min(W-5, x+len);
+      for (let yy=y0; yy<y0+5; yy++) for (let xx=x; xx<x1; xx++){ a[yy*W+xx] = 45; t[yy*W+xx] = 1; }
+      x += len + 2 + Math.floor(r()*3);
+    }
+  }
+  const r2 = mulberry(5);
+  for (let i=0;i<W*W;i++){ let f = 1; if (shadow){ const u = (i % W)/(W-1); f = 1 - 0.62*(u*u*(3-2*u)); } a[i] = clamp(a[i]*f + 3*gauss01(r2), 0, 255); }
+  return { img:a, truth:t };
+}
+function otsu(a){
+  const hst = new Array(256).fill(0); for (let i=0;i<a.length;i++) hst[clamp(Math.round(a[i]),0,255)]++;
+  let sum = 0; for (let i=0;i<256;i++) sum += i*hst[i];
+  let sumB = 0, wB = 0, best = -1, thr = 0;
+  for (let t=0;t<256;t++){
+    wB += hst[t]; if (!wB) continue; const wF = a.length - wB; if (!wF) break;
+    sumB += t*hst[t]; const d = sumB/wB - (sum-sumB)/wF, bt = wB*wF*d*d;
+    if (bt > best){ best = bt; thr = t; }
+  }
+  return { thr:thr, hst:hst };
+}
+function mountBinar(){
+  const root = $("bin-demo");
+  const sL = h("select",{id:"bn-l"}, opt("0","Iluminación pareja"), opt("1","Media hoja en sombra"));
+  const sM = h("select",{id:"bn-m"}, opt("g","Global, a mano"), opt("o","Otsu"), opt("a","Adaptativa"));
+  const rT = h("input",{type:"range",id:"bn-t",min:"0",max:"255",value:"128"}), oT = h("output"), fT = h("label",{class:"field"},"Umbral", rT, oT);
+  const cvA = pxCanvas(), cvB = pxCanvas(), cvH = h("canvas",{width:512,height:110}), out = h("div",{class:"kv"});
+  cvH.style.width = "100%"; cvH.style.maxWidth = "512px";
+  root.append(
+    h("div",{class:"lab-h"}, h("b",{text:"Un documento, tres formas de binarizarlo"}), h("span",{text:"laboratorio"})),
+    h("p",{style:"margin:0",text:"Trazos oscuros sobre papel claro, como en OCR. Prueba los tres métodos con la hoja pareja y después ponle sombra."}),
+    h("div",{class:"row"}, field("Escena", sL), field("Método", sM), fT),
+    h("div",{class:"stage"}, cfig("Imagen", cvA), cfig("Binarizada", cvB)),
+    h("figure",{style:"margin:0"}, h("figcaption",{text:"Histograma, con el umbral marcado"}), cvH), out);
+  function draw(){
+    const sc = sceneDoc(sL.value === "1"), a = sc.img, m = sM.value, o = otsu(a), res = new Float32Array(W*W);
+    fT.hidden = m !== "g"; oT.textContent = rT.value;
+    let thr = null;
+    if (m === "a"){
+      for (let y=0;y<W;y++) for (let x=0;x<W;x++){ let s = 0; for (let j=-7;j<=7;j++) for (let i=-7;i<=7;i++) s += at(a,x+i,y+j); res[y*W+x] = a[y*W+x] > s/225 - 12 ? 255 : 0; }
+    } else { thr = m === "g" ? +rT.value : o.thr; for (let i=0;i<W*W;i++) res[i] = a[i] > thr ? 255 : 0; }
+    paint(cvA, a); paint(cvB, res);
+    const c = cvH.getContext("2d"), mxh = Math.max.apply(null, o.hst.slice(1,255)) || 1;
+    c.clearRect(0,0,512,110); c.fillStyle = cssv("--muted");
+    for (let i=0;i<256;i++){ const hh = Math.min(96, o.hst[i]/mxh*96); c.fillRect(i*2, 104-hh, 2, hh); }
+    c.fillStyle = cssv("--line"); c.fillRect(0,104,512,1);
+    if (thr != null){ c.fillStyle = cssv("--accent"); c.fillRect(thr*2, 0, 2, 110); }
+    let tOk = 0, tAll = 0, bBad = 0, bAll = 0;
+    for (let i=0;i<W*W;i++){ if (sc.truth[i]){ tAll++; if (!res[i]) tOk++; } else { bAll++; if (!res[i]) bBad++; } }
+    const head = m === "g" ? "Umbral global fijo = <b>"+thr+"</b>." : m === "o" ? "Otsu calculó solo, desde el histograma, <b>T = "+thr+"</b>. Sigue siendo un único umbral." : "Adaptativa: cada píxel se compara con el promedio de su vecindario. No hay un umbral único que dibujar.";
+    const shadow = sL.value === "1", fail = bBad/bAll > .05 || tOk/tAll < .9;
+    const tail = !shadow ? (m === "a" ? "Con luz pareja también funciona, pero no hacía falta: un umbral global bastaba." : "Con iluminación pareja el histograma tiene dos jorobas separadas y un solo umbral alcanza.")
+      : (m === "a" ? "La sombra no la afecta: el umbral baja junto con el papel. Es el caso del OCR con iluminación difícil." : (fail ? "La sombra oscurece el papel hasta confundirlo con la tinta: ningún umbral único separa las dos mitades." : "Con este umbral se salva, pero el margen es mínimo: mueve el umbral y se pierde una mitad."));
+    out.innerHTML = head+"<br>Trazos recuperados: <b>"+Math.round(tOk*100/tAll)+"%</b> · papel marcado como tinta por error: <b>"+Math.round(bBad*100/bAll)+"%</b><br>"+tail;
+  }
+  [sL,sM,rT].forEach(e => e.addEventListener("input", draw)); draw();
+}
+
+function mountDeteccion(){
+  /* --- Hough --- */
+  (function(){
+    const root = $("hough-demo"), S = 260, D = Math.ceil(Math.sqrt(2)*S), STEP = 4, NR = Math.floor(2*D/STEP)+1;
+    let pts = [];
+    const cv = h("canvas",{width:S,height:S}), cvA = h("canvas",{class:"px",width:180,height:NR}), out = h("div",{class:"kv"});
+    cv.style.cursor = "crosshair"; cv.style.width = S+"px";
+    function example(){
+      pts = []; for (let i=0;i<14;i++){ if (i>=5 && i<=7) continue; pts.push([22+15*i, Math.round(52+8.2*i)]); }
+      for (let i=0;i<8;i++) pts.push([rnd(10,S-10), rnd(10,S-10)]);
+    }
+    root.append(
+      h("div",{class:"lab-h"}, h("b",{text:"Hough: los puntos votan"}), h("span",{text:"laboratorio"})),
+      h("p",{style:"margin:0",text:"Toca el cuadro para agregar puntos de borde. El ejemplo trae una recta cortada y puntos sueltos de ruido."}),
+      h("div",{class:"row"}, h("button",{class:"btn",type:"button",text:"Ejemplo",onclick:() => { example(); draw(); }}), h("button",{class:"btn",type:"button",text:"Limpiar",onclick:() => { pts = []; draw(); }})),
+      h("div",{class:"stage"}, cfig("Puntos de borde", cv), cfig("Acumulador: θ hacia la derecha, ρ hacia abajo", cvA)), out);
+    cv.addEventListener("click", e => { const r = cv.getBoundingClientRect(); pts.push([Math.round((e.clientX-r.left)*S/r.width), Math.round((e.clientY-r.top)*S/r.height)]); draw(); });
+    function draw(){
+      const acc = new Uint16Array(180*NR); let best = 0, bt = 0, br = 0;
+      pts.forEach(p => { for (let t=0;t<180;t++){ const th = t*Math.PI/180, r = Math.round((p[0]*Math.cos(th)+p[1]*Math.sin(th)+D)/STEP), v = ++acc[t*NR+r]; if (v > best){ best = v; bt = t; br = r; } } });
+      const ca = cvA.getContext("2d"), d = ca.createImageData(180,NR);
+      for (let t=0;t<180;t++) for (let r=0;r<NR;r++){ const g = best ? Math.round(acc[t*NR+r]/best*255) : 0, i = (r*180+t)*4; d.data[i]=d.data[i+1]=d.data[i+2]=g; d.data[i+3]=255; }
+      ca.putImageData(d,0,0);
+      const c = cv.getContext("2d"), acn = cssv("--accent"), ink = cssv("--ink");
+      c.clearRect(0,0,S,S);
+      const th = bt*Math.PI/180, rho = br*STEP-D, cs = Math.cos(th), sn = Math.sin(th);
+      if (pts.length >= 2 && best >= 2){
+        ca.fillStyle = "#ff5a4d"; ca.fillRect(bt-2, br-2, 5, 5);
+        c.strokeStyle = acn; c.lineWidth = 2; c.beginPath();
+        if (Math.abs(sn) > 1e-3){ c.moveTo(0, rho/sn); c.lineTo(S, (rho-S*cs)/sn); } else { c.moveTo(rho/cs,0); c.lineTo(rho/cs,S); }
+        c.stroke();
+      }
+      pts.forEach(p => { const on = best >= 2 && Math.abs(p[0]*cs+p[1]*sn-rho) <= STEP; c.fillStyle = on ? acn : ink; c.beginPath(); c.arc(p[0],p[1],4,0,7); c.fill(); });
+      out.innerHTML = pts.length < 2 ? "Agrega al menos dos puntos."
+        : "Recta ganadora: θ = <b>"+bt+"°</b>, ρ = <b>"+rho+" px</b>, con <b>"+best+" votos</b> de "+pts.length+" puntos.<br>Cada punto dibuja una curva en el acumulador; donde se cruzan muchas, hay una recta. El hueco en la línea no importa: los puntos de los dos lados votan por la misma celda.";
+    }
+    example(); draw();
+  })();
+
+  /* --- blobs --- */
+  (function(){
+    const root = $("blob-demo"); let seed = 21, shapes = [];
+    const rA = h("input",{type:"range",id:"bl-a",min:"0",max:"1000",step:"10",value:"0"}), oA = h("output");
+    const rC = h("input",{type:"range",id:"bl-c",min:"0",max:"100",step:"5",value:"0"}), oC = h("output");
+    const cv = h("canvas",{width:330,height:210}), out = h("div",{class:"kv"}); cv.style.width = "330px";
+    function gen(){
+      const r = mulberry(seed), slots = []; for (let i=0;i<15;i++) slots.push(i);
+      for (let i=14;i>0;i--){ const j = Math.floor(r()*(i+1)), t = slots[i]; slots[i] = slots[j]; slots[j] = t; }
+      shapes = [];
+      for (let i=0;i<15;i++){
+        const s = slots[i], cx = (s%5)*66+33, cy = Math.floor(s/5)*70+35;
+        if (i < 5){ const rad = 10+Math.floor(r()*13); shapes.push({k:"c",x:cx,y:cy,r:rad,a:Math.PI*rad*rad,ci:1,t:"circ"}); }
+        else if (i < 9){ const w = 36+Math.floor(r()*23), hh = 6+Math.floor(r()*6); shapes.push({k:"r",x:cx,y:cy,w:w,h:hh,a:w*hh,ci:4*Math.PI*w*hh/Math.pow(2*(w+hh),2),t:"rect"}); }
+        else { const rad = 1.5+r()*1.5; shapes.push({k:"c",x:cx,y:cy,r:rad,a:Math.PI*rad*rad,ci:1,t:"mota"}); }
+      }
+    }
+    root.append(
+      h("div",{class:"lab-h"}, h("b",{text:"Filtrar blobs por propiedades"}), h("span",{text:"laboratorio"})),
+      h("p",{style:"margin:0",text:"Hay piezas redondas, piezas alargadas y motas de polvo. Usa los filtros para quedarte solo con las redondas."}),
+      h("div",{class:"row"}, h("label",{class:"field"},"Área mínima", rA, oA), h("label",{class:"field"},"Circularidad mínima", rC, oC),
+        h("button",{class:"btn",type:"button",text:"Otras piezas",onclick:() => { seed++; gen(); draw(); }})),
+      cv, out);
+    function draw(){
+      const amin = +rA.value, cmin = rC.value/100, c = cv.getContext("2d"), acn = cssv("--accent"), off = cssv("--line");
+      oA.textContent = amin+" px²"; oC.textContent = fmt(cmin);
+      c.clearRect(0,0,330,210); c.fillStyle = cssv("--bg"); c.fillRect(0,0,330,210);
+      let pass = 0, byA = 0, byC = 0;
+      shapes.forEach(s => {
+        const okA = s.a >= amin, okC = s.ci >= cmin, ok = okA && okC; if (ok) pass++; else if (!okA) byA++; else byC++;
+        c.fillStyle = ok ? acn : off; c.beginPath();
+        if (s.k === "c") c.arc(s.x,s.y,s.r,0,7); else c.rect(s.x-s.w/2, s.y-s.h/2, s.w, s.h);
+        c.fill();
+      });
+      out.innerHTML = "Pasan <b>"+pass+" de "+shapes.length+"</b>. Descartados por área: "+byA+" · por circularidad: "+byC+".<br>Circularidad = 4π·área / perímetro². Un círculo da 1; una pieza alargada da mucho menos. Con área mínima se ignoran las motas de polvo, que un simple conteo de píxeles sumaría.";
+    }
+    [rA,rC].forEach(e => e.addEventListener("input", draw)); gen(); draw();
+  })();
+
+  /* --- Harris --- */
+  (function(){
+    const root = $("harris-demo");
+    const r1 = h("input",{type:"range",id:"hr-1",min:"0",max:"100",value:"70"}), o1 = h("output");
+    const r2 = h("input",{type:"range",id:"hr-2",min:"0",max:"100",value:"12"}), o2 = h("output");
+    const cv = h("canvas",{width:250,height:240}), out = h("div",{class:"kv"}); cv.style.width = "250px";
+    root.append(
+      h("div",{class:"lab-h"}, h("b",{text:"Harris: dos autovalores, tres casos"}), h("span",{text:"laboratorio"})),
+      h("div",{class:"row"}, h("label",{class:"field"},"λ₁: cambio en una dirección", r1, o1), h("label",{class:"field"},"λ₂: cambio en la otra", r2, o2)),
+      cv, out);
+    function draw(){
+      const a = +r1.value, b = +r2.value, T = 30, c = cv.getContext("2d"), X = v => 34+v*2, Y = v => 210-v*2;
+      o1.textContent = a; o2.textContent = b;
+      c.clearRect(0,0,250,240);
+      c.fillStyle = cssv("--warn-soft"); c.fillRect(X(0),Y(100),200,200);
+      c.fillStyle = cssv("--surface-2"); c.fillRect(X(0),Y(T),T*2,T*2);
+      c.fillStyle = cssv("--ok-soft"); c.fillRect(X(T),Y(100),(100-T)*2,(100-T)*2);
+      c.strokeStyle = cssv("--ink"); c.lineWidth = 1; c.strokeRect(X(0)+.5,Y(100)+.5,200,200);
+      c.fillStyle = cssv("--ink"); c.font = "12px monospace"; c.textAlign = "center";
+      c.fillText("ESQUINA", X(65), Y(65)); c.fillText("plana", X(15), Y(13)); c.fillText("borde", X(65), Y(13)); c.fillText("borde", X(15), Y(65));
+      c.fillStyle = cssv("--muted"); c.fillText("λ₁ →", X(50), 232); c.save(); c.translate(14, Y(50)); c.rotate(-Math.PI/2); c.fillText("λ₂ →", 0, 0); c.restore();
+      c.fillStyle = cssv("--accent"); c.beginPath(); c.arc(X(a),Y(b),7,0,7); c.fill();
+      const big1 = a >= T, big2 = b >= T;
+      out.innerHTML = "λ₁ = "+a+", λ₂ = "+b+" → " + (big1 && big2 ? "<b>Esquina</b>: la intensidad cambia fuerte en las dos direcciones." : (big1 || big2) ? "<b>Borde</b>: cambia fuerte en una sola dirección." : "<b>Región plana</b>: no cambia en ninguna.")
+        + "<br>El corte en 30 es solo para este dibujo.";
+    }
+    [r1,r2].forEach(e => e.addEventListener("input", draw)); draw();
+  })();
+}
+
+/* ============ banco de alternativas ============ */
+const Q = [];
+const q = (s,t,qq,o,e,c,err) => Q.push({s:s,t:t,q:qq,o:o,e:e,c:c,err:!!err});
+/* --- Solemne 1 --- */
+q("S1","Imagen","¿Qué significa «imago», la raíz latina de «imagen»?",["Imitación o representación de la realidad","Luz capturada por un sensor","Conjunto ordenado de colores","Figura proyectada en un plano"],"El profe: imagen viene del latín, es imitar, una representación de la realidad.","Clase 1");
+q("S1","Imagen","En lo concreto, una imagen digital es…",["Una matriz de píxeles de x por y","Una lista de colores sin orden","Una onda continua de luz","Un archivo de video comprimido"],"Una matriz de datos, en color o en escala de grises.","Clase 1");
+q("S1","Imagen","¿Por qué el profe dice que no existe una foto «en blanco y negro»?",["Porque tendría solo dos valores; lo que hay es escala de grises","Porque toda foto conserva algo de color en sus bordes","Porque los sensores no pueden registrar el negro puro","Porque el ojo humano no distingue los grises intermedios"],"Blanco y negro puro es una imagen binaria: 1 y 0.","Clase 1");
+q("S1","Imagen","El procesamiento de imágenes es…",["Métodos matemáticos y algoritmos para representar, intervenir y modificar la información","El proceso químico con que se revela una fotografía en papel","La transmisión de video en tiempo real a través de una red","El ajuste mecánico del lente antes de capturar la escena"],"Conceptos y métodos matemáticos para el procesamiento digital de la información extraída de la realidad.","Clase 1");
+q("S1","Imagen","¿Quién es Lena en visión artificial?",["La imagen de prueba histórica de la disciplina","La creadora del operador Sobel","El nombre comercial de un sensor","Una librería de procesamiento"],"«Toda historia parte con una mujer»: Lena Söderberg aparece en todos los algoritmos.","Clase 1");
+q("S1","Píxel","Con 8 bits por píxel, ¿cuántas intensidades hay?",["256, de 0 (negro) a 255 (blanco)","255, de 1 (negro) a 255 (blanco)","256, de 0 (blanco) a 255 (negro)","8, de 0 (negro) a 7 (blanco)"],"Son 256 «porque el cero cuenta».","Clase 3");
+q("S1","Píxel","La resolución de una imagen es…",["La cantidad de píxeles, m × n","La cantidad de bits por píxel","La nitidez con que se ve","El rango entre claro y oscuro"],"Y no significa que se vea mejor: «es una foto más grande, no más».","Clase 3");
+q("S1","Píxel","Un histograma es…",["El conteo de píxeles que hay en cada intensidad","La lista ordenada de los colores de la imagen","El promedio de brillo de toda la imagen","El mapa con la posición de cada borde"],"Si está más repartido, la imagen tiene más contraste.","Clases 3 y 5");
+q("S1","Píxel","¿Qué es el pseudocolor?",["Asignar un color a cada rango de intensidad de grises","Capturar la escena con un sensor por cada color","Convertir una imagen de color a escala de grises","Invertir los valores para obtener el negativo"],"Se hace con umbrales; es lo que muestran las cámaras térmicas.","Clase 5");
+q("S1","Percepción","¿Cuáles son las tres características de la percepción humana?",["Subjetiva, selectiva y temporal","Objetiva, continua y universal","Directa, completa y estable","Sensorial, lógica y permanente"],"Con ese nombre exacto.","Clase 1 · percepcion.pdf");
+q("S1","Percepción","La percepción es subjetiva porque…",["Depende de la experiencia de cada persona","Cambia a lo largo del tiempo","Se enfoca según los intereses","Es igual para todo observador"],"Las otras dos opciones verdaderas describen temporal y selectiva.","Clase 1");
+q("S1","Percepción","Que la percepción sea selectiva significa que…",["Se percibe según intereses, actitudes, valores y necesidades","Depende de lo que cada uno ha vivido antes","Va cambiando a medida que pasan los años","Capta todos los detalles de la escena a la vez"],"No se ven todos los árboles del bosque, solo algunos.","Clase 1");
+q("S1","Percepción","Que la percepción sea temporal significa que…",["Cambia con el tiempo","Dura solo un instante","Depende de la hora del día","Es más lenta que una cámara"],"Lo que se ve hoy no es lo que se veía de chico.","Clase 1");
+q("S1","Cadena radiométrica","¿Cuál es el orden de la cadena radiométrica?",["Fuente de energía, medio, materia, sensor","Sensor, medio, fuente de energía, materia","Medio, fuente de energía, sensor, materia","Materia, sensor, medio, fuente de energía"],"Es todo el viaje de la energía. «Lo primero es la energía.»","Clases 1 y 6",true);
+q("S1","Cadena radiométrica","¿Por qué importa el medio en la cadena radiométrica?",["Porque temperatura, partículas o agua cambian lo que llega","Porque es el lugar donde nace la energía","Porque es donde queda guardada la imagen","Porque decide el color propio del objeto"],"«Es algo que casi nunca se entiende, pero hay que revisarlo siempre.»","Clase 2");
+q("S1","Materia","¿Qué cuatro cosas puede hacer la materia con un rayo incidente?",["Absorber, transmitir, emitir y reflejar","Absorber, refractar, enfocar y filtrar","Emitir, dispersar, polarizar y medir","Reflejar, amplificar, filtrar y guardar"],"«Anótenla como pregunta de prueba.»","Clase 2",true);
+q("S1","Cuerpos","Un cuerpo en que toda la energía es absorbida es…",["Un cuerpo negro","Una ventana ideal","Un espejo","Un cuerpo opaco"],"La ventana ideal transmite todo y el espejo refleja todo.","Clase 2");
+q("S1","Cuerpos","La ventana ideal se caracteriza porque…",["Transmite toda la energía y no emite nada propio","Absorbe toda la energía que recibe","Refleja toda la energía que recibe","Emite energía pero no deja pasar nada"],"La luz atraviesa y no se atenúa.","Clase 2");
+q("S1","Cuerpos","En un cuerpo opaco, la energía…",["No lo atraviesa: es emitida o reflejada","Lo atraviesa sin atenuarse","Es absorbida por completo","Se transmite y se refracta"],"Toda radiación es emitida por él o reflejada.","Clase 2");
+q("S1","Cuerpos","Cuerpo negro, ventana ideal y espejo perfecto…",["Son modelos ideales: no existen en la vida real","Existen, pero solo en laboratorio","Son los tres tipos de sensor","Son etapas de la cadena radiométrica"],"El profe insiste: «eso no existe en la vida real».","Clase 2");
+q("S1","Óptica","¿Qué es la refracción?",["El cambio de ángulo de la luz al cambiar de medio","El rebote de la luz que vuelve al mismo medio","La absorción total de la luz por un cuerpo","La emisión de luz propia de un material"],"«Se refracta, no se refleja»: habla del cambio de medio.","Clase 2");
+q("S1","Óptica","El lápiz que se ve quebrado dentro de un vaso con agua es un ejemplo de…",["Refracción","Reflexión","Absorción","Emisión"],"Es el ejemplo del profe para la ley de Snell.","Clase 2");
+q("S1","Óptica","La ley de Snell relaciona…",["Los ángulos incidente y refractado con el índice de cada medio","La intensidad de la luz con la distancia a la fuente","La longitud de onda con el color percibido","El tamaño del sensor con la resolución"],"n₁ · sen(θ₁) = n₂ · sen(θ₂).","Clase 2");
+q("S1","Óptica","Un material subsuperficial, como algunas gomas, es aquel donde…",["La luz queda rebotando por dentro: se ve brillante sin serlo","La luz se refleja por completo en la superficie","La luz atraviesa sin desviarse ni atenuarse","La luz es absorbida y no sale nada"],"Una de las «cosas místicas» que mencionó junto a la refracción.","Clase 2");
+q("S1","Sensores","¿Qué sensor entrega mejor imagen y va en cámaras profesionales?",["CCD","CMOS","SEM","LIDAR"],"«El CCD hace una mejor imagen. Es para una cámara profesional.»","Clase 2");
+q("S1","Sensores","¿Por qué el CCD determina el color con más precisión?",["Tiene un fotorreceptor por cada color en cada celda","Tiene píxeles más grandes que el CMOS","Trabaja solo en escala de grises","Usa un lente distinto por cada color"],"Uno para el rojo, otro para el verde y otro para el azul.","Clase 2");
+q("S1","Espectro","El rango de la luz visible es…",["400 a 700 nanómetros","40 a 70 nanómetros","400 a 700 micrómetros","4 a 7 nanómetros"],"El profe avisó «dos preguntas de prueba» sobre los bordes de ese rango. En la Clase 1 dijo 750 como límite superior.","Clase 2",true);
+q("S1","Espectro","Justo bajo los 400 nm y justo sobre los 700 nm están…",["El ultravioleta y el infrarrojo","El infrarrojo y el ultravioleta","Los rayos X y las microondas","Las ondas de radio y los rayos gamma"],"Ultravioleta abajo, infrarrojo arriba.","Clases 1 y 2",true);
+q("S1","Espectro","La luz, dicha como humano, es…",["La radiación electromagnética que el ojo ve","Cualquier energía que emite una fuente","El color que refleja un objeto","Una onda que necesita aire para viajar"],"Un espectro muy pequeño dentro del total.","Clase 1");
+q("S1","Espectro","¿Qué hace la frecuencia infrarroja en la materia?",["Agita las partículas y produce calor","Revela las marcas ocultas de un billete","Atraviesa los cuerpos opacos","La vuelve transparente"],"Lo de los billetes es el ultravioleta.","Clase 1");
+q("S1","Concepto","Una máscara de convolución es…",["Un proceso matemático que modifica la intensidad de los píxeles de una imagen origen a una destino","Un sensor que mide la intensidad de luz en cada celda","Un formato para guardar la imagen en menos espacio","Un ajuste del lente que corrige el enfoque de la escena"],"Definición textual del profe.","Clase 4");
+q("S1","Concepto","¿Por qué las máscaras de convolución son impares?",["Para tener un píxel pivote al centro","Para que la norma nunca sea cero","Para que el cálculo sea más rápido","Para que la imagen no cambie de tamaño"],"Así se sabe exactamente qué píxel se está transformando.","Clase 4");
+q("S1","Concepto","Si la máscara de convolución es más grande…",["Su efecto es más potente","Su efecto es más débil","La norma pasa a ser cero","Deja de tener pivote"],"«Si es más grande, su potencia es más grande.»","Clase 4");
+q("S1","Concepto","¿Cuáles son los cuatro filtros morfológicos?",["Dilatación, erosión, apertura y cierre","Media, mediana, gaussiano y Sobel","Global, Otsu, adaptativa y banda","Hough, blobs, Harris y Canny"],"Los nombró así al cerrar la diapositiva 6.","Clase 5");
+q("S1","Concepto","En morfología, dilatar es…",["Expandir el píxel hacia sus vecinos","Desgastar el contorno del objeto","Promediar el vecindario","Ordenar los valores del vecindario"],"«Dime con quién andas y te diré quién eres.»","Clase 5");
+q("S1","Aplicaciones","Según la lámina de aplicaciones, «Navegación en robótica (AGV)» y «Pick and place» corresponden a…",["Ingeniería en Automatización y Robótica","Ingeniería en Logística y Transporte","Ingeniería Industrial","Ingeniería Civil Industrial"],"Son las dos aplicaciones de esa ingeniería en la pauta.","Diapositivas 3 y 5",true);
+q("S1","Aplicaciones","«Tráfico – Identificación de matrículas y modelos» aparece en la lámina bajo…",["Ingeniería en Logística y Transporte","Ingeniería en Seguridad y Prevención de Riesgos","Ingeniería Civil Industrial","Ingeniería en Automatización y Robótica"],"Junto a ferrocarril, crash y cámaras en automóviles.","Diapositivas 3 y 5",true);
+q("S1","Aplicaciones","¿Cuál de estas aplicaciones está en la lámina para Ingeniería Industrial?",["Alimentación – Color y medida de fruta","Logística – Análisis de desperfectos en palets","Tráfico – Identificación de matrículas y modelos","Biometría – Identificación – Facial, Iris,…"],"Ingeniería Industrial: metrología y calidad, alimentación, automoción y madera.","Diapositivas 3 y 5",true);
+q("S1","Aplicaciones","«Packaging – Lectura de códigos de barras – Trazabilidad» corresponde a…",["Ingeniería Civil Industrial","Ingeniería Industrial","Ingeniería en Logística y Transporte","Ingeniería en Seguridad y Prevención de Riesgos"],"Civil Industrial: clasificación industrial, logística y packaging.","Diapositivas 3 y 5",true);
+q("S1","Aplicaciones","«Construcción – Fugas de calor en edificios mediante cámaras térmicas» está en la lámina bajo…",["Ingeniería en Seguridad y Prevención de Riesgos","Ingeniería Industrial","Ingeniería en Automatización y Robótica","Ingeniería Civil Industrial"],"Con antropometría, biometría y vigilancia.","Diapositivas 3 y 5",true);
+q("S1","Aplicaciones","En la lámina de aplicaciones, lo que aparece para Minería es…",["Control 3D de tamaño de rocas","Clasificación de minerales por color","Conteo de camiones en el rajo","Medición de la ley del mineral"],"Literal de la lámina.","Diapositivas 3 y 5",true);
+q("S1","Aplicaciones","¿Cuántas ingenierías nombra la lámina de aplicaciones?",["Cinco, y aparte áreas como forense, medicina, microscopía y minería","Tres, y aparte áreas como forense, medicina, microscopía y minería","Siete, sin áreas aparte","Diez, una por cada aplicación"],"Civil Industrial, Industrial, Logística y Transporte, Automatización y Robótica, Seguridad y Prevención de Riesgos. Aparte: biología/geología/meteorología/astronomía, forense, medicina, microscopía y minería.","Diapositiva 3",true);
+/* --- Solemne 2 --- */
+q("S2","Bordes","¿Qué diferencia a Sobel de Prewitt?",["Sobel pondera con 2 la fila o columna central","Sobel es de 3×3 y Prewitt es de 2×2","Prewitt detecta diagonales y Sobel no","Sobel se normaliza y Prewitt no"],"Los dos son 3×3. El de 2×2 es Roberts Cross.","Clases 8 y 12",true);
+q("S2","Bordes","¿Qué característica tiene el kernel de Sobel frente a otros operadores básicos?",["Una ponderación central de dos, que suaviza implícitamente","Un tamaño de 2×2 que lo hace más rápido","Ocho máscaras, una por cada dirección","Una norma de 16 que conserva el brillo"],"«Hay varias preguntas con eso.»","Clase 12",true);
+q("S2","Bordes","¿Cuál de estos operadores es de 2×2?",["Roberts Cross","Prewitt","Sobel","Kirsch"],"Kirsch son ocho máscaras de 3×3.","Clase 8",true);
+q("S2","Bordes","¿Por qué no se normaliza un kernel de bordes?",["Sus coeficientes suman cero: sería dividir por cero","Ya viene dividido por su norma","Su norma siempre vale uno","Se normaliza después de escalar"],"«Se dividiría por cero… podría ser parte de la pregunta de la solemne.»","Clase 8",true);
+q("S2","Bordes","¿Cuántas máscaras usa Kirsch?",["Ocho, una por dirección","Dos, una en x y otra en y","Cuatro, una por cuadrante","Una, que el algoritmo rota"],"Es un operador de compás: se queda con la respuesta máxima.","Clase 8");
+q("S2","Bordes","¿En qué destaca Kirsch en aplicaciones industriales?",["En la detección de microdefectos","En el seguimiento de líneas rectas","En la lectura de texto con sombras","En el conteo rápido de objetos"],"Fue la respuesta que dio el profe en el cuestionario.","Clase 12");
+q("S2","Bordes","¿Por qué Kirsch es el más lento de los operadores de máscara?",["Porque aplica ocho convoluciones en vez de una o dos","Porque usa una máscara de 7×7","Porque necesita binarizar antes","Porque trabaja en color"],"Ocho máscaras de compás rotacionales.","Clase 8");
+q("S2","Bordes","¿Qué se evita calcular directamente al usar las máscaras de Prewitt?",["Las derivadas continuas de la función de intensidad","La norma de la máscara de convolución","El histograma de la imagen completa","Los autovalores de la matriz de gradientes"],"Primera pregunta del cuestionario del profe.","Clase 12");
+q("S2","Bordes","¿En qué paso de Canny el borde queda de un píxel de ancho?",["Supresión de no máximos","Histéresis","Suavizado gaussiano","Cálculo del gradiente"],"La histéresis decide qué bordes sobreviven; el adelgazamiento es de la supresión de no máximos.","PDF 1 · Bordes");
+q("S2","Bordes","¿En qué consiste la histéresis de Canny?",["Dos umbrales: un borde débil queda solo si se conecta con uno fuerte","Un suavizado previo que elimina el ruido antes de derivar","Una rotación de la máscara en ocho direcciones","Una comparación de cada píxel con el promedio local"],"Evita que los bordes queden cortados.","PDF 1 · Bordes");
+q("S2","Bordes","¿Qué tipo de bordes entrega Canny, a diferencia de Sobel?",["Ultra finos y con contornos cerrados","Gruesos y solo verticales","Diagonales y discontinuos","Direccionales en ocho ángulos"],"Sobel da borde grueso.","Clase 8");
+q("S2","Bordes","Comparado con Sobel, Canny es…",["Más lento, por su complejidad algorítmica","Más rápido, porque usa una sola máscara","Igual de rápido, pero menos preciso","Más rápido, porque no suaviza"],"«Es el más nuevo, es el mejor, pero gasta más recursos.»","Clase 12");
+q("S2","Bordes","Canny es…",["Un algoritmo de varios pasos que usa Sobel por dentro","Una máscara de convolución de 5×5","Una variante de Prewitt con peso central","Un filtro morfológico de limpieza"],"Suavizado, gradiente, supresión de no máximos e histéresis.","PDF 1 · Bordes");
+q("S2","Bordes","¿Para qué se usa la aproximación |Gx| + |Gy| de la magnitud?",["Para calcular más rápido, por ejemplo en sistemas embebidos","Para obtener bordes de un píxel de ancho","Para evitar dividir por cero al normalizar","Para detectar bordes en diagonal"],"Evita la raíz cuadrada.","Clase 12");
+q("S2","Bordes","Sobel Gx, con sus columnas −1 0 1, marca sobre todo…",["Los bordes verticales","Los bordes horizontales","Las esquinas","Las zonas planas"],"Responde al cambio al avanzar en horizontal.","Clase 8");
+q("S2","Filtros","Tienes ruido sal y pimienta. ¿Qué filtro aplicas?",["Mediana","Gaussiano","Media","Sobel"],"El gaussiano es ineficaz contra el ruido impulsivo.","Clase 9",true);
+q("S2","Filtros","¿Qué ruido elimina por completo la mediana, preservando los contornos?",["Sal y pimienta","Ruido gaussiano suave","Desenfoque de movimiento","Iluminación dispareja"],"Pregunta del cuestionario del profe.","Clase 12",true);
+q("S2","Filtros","¿Cómo se calcula el nuevo píxel en el filtro de mediana?",["Se ordenan los valores del vecindario y se toma el central","Se promedian los valores del vecindario","Se suman los productos con una máscara","Se toma el valor más alto del vecindario"],"No es una convolución: ordena.","Clases 9 y 12");
+q("S2","Filtros","¿Qué diferencia clave hay entre mediana y gaussiano al tratar los bordes?",["La mediana los preserva; el gaussiano los difumina","El gaussiano los preserva; la mediana los borra","Los dos los difuminan por igual","Ninguno de los dos los modifica"],"La mediana no inventa valores intermedios.","Clase 12");
+q("S2","Filtros","En el ruido sal y pimienta, la «sal» son…",["Puntos blancos","Puntos negros","Franjas claras","Manchas grises"],"La pimienta son los puntos negros.","Clase 9");
+q("S2","Filtros","¿Qué efecto visual produce un filtro gaussiano?",["Difumina: suaviza la imagen","Resalta los bordes","Binariza la imagen","Aumenta el contraste"],"La difuminación va del píxel central hacia los bordes.","Clase 9");
+q("S2","Filtros","¿Qué pasa si se aplica un gaussiano con una máscara muy grande?",["Difumina mucho más y se pierde detalle","Los bordes quedan más finos","El ruido impulsivo desaparece","La imagen no cambia"],"Máscara más grande, efecto más potente.","Clase 4");
+q("S2","Filtros","La norma del gaussiano 3×3 (1 2 1 / 2 4 2 / 1 2 1) es…",["16","9","0","4"],"Se multiplica por 1/16.","Clase 9");
+q("S2","Frecuencia","¿Qué representa una alta frecuencia en una imagen?",["Cambios bruscos de intensidad en pocos píxeles","Zonas amplias de intensidad constante","Degradados suaves entre dos tonos","Una iluminación muy intensa"],"El salto con pendiente vertical.","Clases 4 y 12");
+q("S2","Frecuencia","¿Cuáles son los tres tipos de filtros frecuenciales?",["Pasa bajo, pasa alto y pasa banda","Sobel, Canny y Prewitt","Erosión, dilatación y cierre","Global, Otsu y adaptativa"],"Pregunta del cuestionario del profe.","Clase 12");
+q("S2","Frecuencia","Si de blanco a blanco hay 4 píxeles, la frecuencia es…",["0,25","4","0,4","2"],"Frecuencia = 1 / período = 1/4.","Clase 5",true);
+q("S2","Frecuencia","Si de blanco a blanco hay 16 píxeles, la frecuencia es…",["0,0625","0,16","16","0,625"],"1/16. «Esto es casi pregunta de prueba.»","Clase 4",true);
+q("S2","Frecuencia","Una imagen completamente blanca, en el dominio de la frecuencia…",["No tiene frecuencia: no hay repetición","Tiene la frecuencia más alta posible","Tiene frecuencia 1","Tiene frecuencia 255"],"«Si no tengo repetición o tengo una imagen en blanco, no hay una frecuencia.»","Clase 4");
+q("S2","Frecuencia","Franjas verticales que se repiten tienen una frecuencia de dirección…",["Horizontal","Vertical","Diagonal","Sin dirección"],"El patrón se repite al avanzar en horizontal.","Clase 5");
+q("S2","Frecuencia","Un cambio que salta y vuelve de inmediato es un…",["Impulso","Escalón","Rampa","Plano"],"El escalón salta y se queda.","Clase 4");
+q("S2","Frecuencia","Si se quita información en el dominio de la frecuencia…",["Se pierde detalle de la imagen","La imagen gana resolución","Aparecen más bordes","No cambia nada visible"],"Se va la interferencia, pero también las pestañas.","Clase 5");
+q("S2","Binarización","¿Qué busca determinar automáticamente el método de Otsu?",["El umbral óptimo, analizando el histograma","El tamaño ideal de la máscara","La dirección de los bordes","La cantidad de objetos"],"El valor T óptimo sobre un histograma bimodal.","Clase 9");
+q("S2","Binarización","El método de Otsu es…",["Global: un solo umbral, elegido automáticamente","Adaptativo: un umbral distinto por región","Un filtro de suavizado previo","Un detector de bordes finos"],"La trampa clásica: Otsu no es adaptativo.","Clase 9");
+q("S2","Binarización","¿Para qué aplicación se muestra el éxito de la umbralización adaptativa?",["OCR con iluminación difícil","Detección de esquinas","Medición de temperatura","Conteo de círculos"],"«Es la única, OCR.»","Clase 12");
+q("S2","Binarización","Media hoja con luz y media con sombra. ¿Qué umbralización conviene?",["Adaptativa","Global fija","Otsu","Ninguna"],"Un umbral por zona sobrevive a la iluminación dispareja.","Clase 9");
+q("S2","Binarización","¿Cuál es el problema de la binarización global?",["Falla con iluminación irregular","Es demasiado lenta","Solo sirve en color","Borra los bordes finos"],"Usa un solo valor para toda la imagen.","Clases 8 y 9");
+q("S2","Morfología","¿Cuál es el objetivo de la apertura morfológica?",["Eliminar puntos aislados y protuberancias por fuera","Sellar grietas y agujeros por dentro","Engrosar todos los objetos","Adelgazar los bordes a un píxel"],"«Cuando abre no sella.»","Clases 10 y 12",true);
+q("S2","Morfología","¿Qué operación sella una grieta para poder medirla continua?",["Cierre","Apertura","Erosión","Supresión de no máximos"],"«Para consolidar la fisura tengo que cerrar.»","Clase 12",true);
+q("S2","Morfología","La apertura es…",["Erosión seguida de dilatación","Dilatación seguida de erosión","Dos erosiones seguidas","Dos dilataciones seguidas"],"El cierre es el orden contrario.","Clase 10",true);
+q("S2","Morfología","Un objeto tiene un pequeño saliente de ruido. ¿Qué operación lo elimina?",["Apertura","Cierre","Dilatación","Umbral global"],"Elimina protuberancias y rompe istmos.","Clase 12");
+q("S2","Morfología","¿Por qué se prefiere la apertura a una simple erosión para limpiar ruido?",["Porque después devuelve su tamaño a lo que sobrevivió","Porque es más rápida de calcular","Porque también tapa los agujeros","Porque no necesita elemento estructurante"],"La erosión sola deja todo más chico.","Clases 10 y 12");
+q("S2","Morfología","En la erosión con elemento 3×3 de unos, un píxel sobrevive si…",["Todos los del vecindario son 1","Al menos uno del vecindario es 1","La mayoría del vecindario es 1","El píxel central es 1"],"Erosión es el Y lógico; dilatación, el O.","Clase 10");
+q("S2","Morfología","Si se dilata en exceso a dos objetos cercanos…",["Terminan fusionados en uno solo","Se separan todavía más","Desaparecen los dos","Quedan con bordes más finos"],"Dilatar hace crecer y juntar.","Clases 8 y 12");
+q("S2","Morfología","Antes de erosionar o dilatar, lo primero es…",["Definir cuál es el fondo y cuál la figura","Calcular la norma del elemento","Pasar la imagen a color","Escalar a 8 bits"],"El error que el profe marcó como el más común.","Clase 10",true);
+q("S2","Morfología","Para ver solo la luna y borrar las estrellas, se aplica…",["Erosión y después dilatación","Dilatación y después erosión","Solo una dilatación","Un umbral adaptativo"],"Eso es una apertura.","Clase 10");
+q("S2","Detección","¿Cuál es el propósito de la transformada de Hough?",["Detectar líneas rectas y círculos","Detectar esquinas","Eliminar ruido impulsivo","Binarizar con umbral automático"],"Las esquinas son de Harris; las regiones, de los blobs.","Clase 12 · PDF 4");
+q("S2","Detección","¿Cuáles son las dos variantes de la transformada de Hough?",["Estándar y probabilística","Global y adaptativa","Horizontal y vertical","Continua y discreta"],"La probabilística muestrea puntos y devuelve segmentos.","Clase 12 · PDF 4");
+q("S2","Detección","¿Por qué Hough representa las rectas en coordenadas polares?",["Porque una recta vertical tendría pendiente infinita","Porque así necesita menos memoria","Porque los círculos lo exigen","Porque trabaja con imágenes en color"],"Con y = mx + b las verticales romperían el método.","PDF 4");
+q("S2","Detección","Hough se aplica sobre…",["Una imagen de bordes ya binarizada","La imagen original en color","El histograma de la imagen","La imagen suavizada con gaussiano"],"Típicamente la salida de Canny.","PDF 4");
+q("S2","Detección","¿Qué es un blob?",["Una región: un grupo de píxeles conectados","Una línea recta detectada","Un píxel aislado de ruido","Una máscara de convolución"],"«Son grupos, es una región.»","Clase 12");
+q("S2","Detección","¿Qué ventaja tiene filtrar blobs por propiedades frente a contar píxeles?",["Permite ignorar pequeñas motas de polvo","Evita tener que binarizar","Detecta también las esquinas","Funciona sin iluminación"],"Respuesta del cuestionario del profe.","Clase 12");
+q("S2","Detección","Para Harris, una esquina es un punto donde la intensidad…",["Cambia fuerte en las dos direcciones","Cambia fuerte en una sola dirección","No cambia en ninguna dirección","Es la más alta de la imagen"],"Una sola dirección es un borde.","PDF 4");
+q("S2","Detección","En Harris, dos autovalores grandes indican…",["Una esquina","Un borde","Una zona plana","Ruido"],"Uno grande y uno chico es borde; los dos chicos, zona plana.","PDF 4");
+q("S2","Detección","¿Qué quedó explícitamente fuera del examen?",["SIFT y ORB","Hough y blobs","Sobel y Canny","Apertura y cierre"],"El profe los excluyó.","Clases 10 y 11");
+
+function mountQuiz(){
+  const root = $("quiz"); let st = null;
+  const MODES = [
+    {k:"s1", n:"Solemne 1 · 15 preguntas", f:x => x.s === "S1", c:15},
+    {k:"s2", n:"Teoría Solemne 2 · 15 preguntas", f:x => x.s === "S2", c:15},
+    {k:"mix", n:"Todo mezclado · 20 preguntas", f:() => true, c:20},
+    {k:"err", n:"Avisos y errores del profe", f:x => x.err, c:99}
+  ];
+  const chk = h("input",{type:"checkbox",id:"qz-timed"});
+  function stop(){ if (st && st.timer){ clearInterval(st.timer); st.timer = null; } }
+  function menu(){
+    stop(); st = null;
+    root.replaceChildren(
+      h("div",{class:"lab-h"}, h("b",{text:"Elige una ronda"}), h("span",{text:Q.length+" preguntas en el banco"})),
+      h("div",{class:"row"}, MODES.map(m => h("button",{class:"btn pri",type:"button",text:m.n,onclick:() => start(m)}))),
+      h("label",{style:"display:flex;gap:8px;align-items:center;margin-top:8px"}, chk, "Con tiempo: 30 segundos por pregunta"));
+  }
+  function start(m){
+    const list = shuffle(Q.filter(m.f)).slice(0,m.c);
+    st = { list:list, i:0, ok:0, wrong:[], timed:chk.checked, timer:null, mode:m }; render();
+  }
+  function render(){
+    const it = st.list[st.i], opts = shuffle(it.o.map((t,i) => ({t:t, c:i===0}))), box = h("div",{class:"opts"}), after = h("div"), bar = h("i");
+    const btns = opts.map(o => { const b = h("button",{class:"opt",type:"button",text:o.t}); b.addEventListener("click", () => answer(o)); box.appendChild(b); return b; });
+    setKids(root,
+      h("div",{class:"meter"}, h("span",{text:"Pregunta "+(st.i+1)+" de "+st.list.length+" · "+it.s+" · "+it.t}), h("span",{text:st.ok+" correctas"})),
+      st.timed ? h("div",{class:"timebar"}, bar) : null,
+      h("p",{class:"q",text:it.q}), box, after);
+    if (st.timed){
+      const t0 = Date.now();
+      st.timer = setInterval(() => { const left = 30 - (Date.now()-t0)/1000; bar.style.width = Math.max(0,left/30*100)+"%"; if (left <= 0) answer(null); }, 200);
+    }
+    function answer(o){
+      stop();
+      const ok = !!(o && o.c);
+      btns.forEach((b,i) => { b.disabled = true; if (opts[i].c) b.classList.add("right"); else if (o && opts[i] === o) b.classList.add("miss"); });
+      if (ok) st.ok++; else st.wrong.push({it:it, got:o ? o.t : "se acabó el tiempo"});
+      registrar(it.s === "S1" ? "teoria-s1" : "teoria-s2", it.q + (ok ? "" : " · respondió: "+(o ? o.t : "sin tiempo")), ok);
+      const last = st.i === st.list.length-1;
+      after.replaceChildren(h("div",{class:"verdict "+(ok ? "ok" : "bad")},
+        h("h4",{text: ok ? "Correcto" : (o ? "Incorrecto" : "Tiempo agotado")}),
+        h("p",{style:"margin:0 0 10px"}, it.e+" ", h("span",{class:"src",text:it.c})),
+        h("button",{class:"btn pri",type:"button",text: last ? "Ver resultado" : "Siguiente",onclick:() => { if (last) end(); else { st.i++; render(); } }})));
+      after.querySelector("button").focus();
+    }
+  }
+  function end(){
+    const n = st.list.length, by = {};
+    st.list.forEach(it => { by[it.t] = by[it.t] || [0,0]; by[it.t][1]++; });
+    st.list.forEach(it => { if (!st.wrong.some(w => w.it === it)) by[it.t][0]++; });
+    const tb = h("table",{class:"t"}, h("tr",null,h("th",{text:"Tema"}),h("th",{text:"Correctas"})), Object.keys(by).map(k => h("tr",null,h("td",{text:k}),h("td",{text:by[k][0]+" de "+by[k][1]}))));
+    const mode = st.mode;
+    setKids(root,
+      h("div",{class:"lab-h"}, h("b",{text:"Resultado: "+st.ok+" de "+n+" ("+Math.round(st.ok*100/n)+"%)"}), h("span",{text:mode.n})),
+      h("div",{class:"scroll"}, tb),
+      st.wrong.length ? h("h3",{text:"Para repasar"}) : h("p",{text:"Sin errores en esta ronda."}),
+      st.wrong.map(w => h("div",{class:"nota"}, h("strong",{text:w.it.q}), h("br"), "Respondiste: "+w.got, h("br"), "Correcta: "+w.it.o[0], h("br"), w.it.e+" ", h("span",{class:"src",text:w.it.c}))),
+      h("div",{class:"row"}, h("button",{class:"btn pri",type:"button",text:"Otra ronda igual",onclick:() => start(mode)}), h("button",{class:"btn",type:"button",text:"Cambiar de ronda",onclick:menu})));
+  }
+  menu();
+}
+
+/* ============ tarjetas ============ */
+const CARDS = [
+  ["S1","Las tres características de la percepción","Subjetiva, selectiva y temporal."],
+  ["S1","Las cuatro etapas de la cadena radiométrica, en orden","Fuente de energía → medio → interacción con la materia → sensor."],
+  ["S1","Las cuatro cosas que hace la materia con un rayo incidente","Absorber, transmitir, emitir y reflejar."],
+  ["S1","Cuerpo negro","Toda la energía es absorbida."],
+  ["S1","Ventana ideal","Toda la energía es transmitida; no se atenúa y el cuerpo no emite nada propio."],
+  ["S1","Cuerpo opaco","La energía no lo atraviesa: toda es emitida o reflejada."],
+  ["S1","Espejo","Toda la energía es reflejada."],
+  ["S1","Ley de Snell: fórmula y términos","n₁·sen(θ₁) = n₂·sen(θ₂). n es el índice de refracción de cada medio; θ₁ el ángulo incidente y θ₂ el refractado."],
+  ["S1","Reflexión contra refracción","Reflexión: rebota y vuelve al mismo medio. Refracción: cambia de medio y cambia de ángulo."],
+  ["S1","Rango de la luz visible, y qué hay a cada lado","400 a 700 nm. Abajo el ultravioleta, arriba el infrarrojo."],
+  ["S1","CCD contra CMOS","CCD: mejor imagen, cámaras profesionales, un fotorreceptor por color en cada celda. CMOS: celulares y consumo, más barato."],
+  ["S1","¿Qué significa «imago»?","Imitar: una representación de la realidad."],
+  ["S1","¿Por qué no existe el «blanco y negro»?","Sería solo 1 y 0, una imagen binaria. Lo correcto es escala de grises."],
+  ["S1","8 bits por píxel","256 intensidades: 0 es negro y 255 es blanco."],
+  ["S1","Resolución","La cantidad de píxeles, m × n. No significa que se vea mejor."],
+  ["S1","Histograma","El conteo de píxeles por cada intensidad. Más repartido = más contraste."],
+  ["S1","Pseudocolor","Asignar un color a cada rango de intensidad de grises, con umbrales. Cámaras térmicas."],
+  ["S1","Máscara de convolución, en una frase","Proceso matemático que modifica la intensidad de los píxeles de una imagen origen a una destino. Impar, para tener pivote."],
+  ...APPS.filter(g => !g.area).map(g => ["S1","Aplicaciones de "+g.ing+" (literal de la lámina)", g.items.join(" · ")]),
+  ...APPS.filter(g => g.area && g.items[0].indexOf(" – ") > 0).map(g => ["S1","Lámina de aplicaciones: ¿qué aparece para "+g.ing+"?", g.items[0].split(" – ").slice(1).join(" – ")]),
+  ["S2","Norma de un kernel, y el caso trampa","La suma de los coeficientes. Los kernels de borde suman cero: no se normalizan, sería dividir por cero."],
+  ["S2","Escalamiento a 8 bits, en tres pasos","Buscar mínimo y máximo de toda la matriz; restar el mínimo; multiplicar por 255 / (máx − mín) y redondear."],
+  ["S2","Frecuencia a partir del período","Contar los píxeles de blanco a blanco. Frecuencia = 1 / período. 4 px → 0,25; 16 px → 0,0625."],
+  ["S2","¿Cuándo no hay frecuencia?","Cuando no hay repetición: imagen plana, un escalón o un impulso solos."],
+  ["S2","Alta contra baja frecuencia","Alta: salto con pendiente vertical. Baja: difuminación."],
+  ["S2","Dirección de la frecuencia con franjas verticales","Horizontal: el patrón se repite al avanzar en horizontal. Dos puntos simétricos sobre el eje horizontal."],
+  ["S2","Los tres filtros frecuenciales","Pasa bajo, pasa alto y pasa banda."],
+  ["S2","Erosión","El píxel sobrevive solo si TODO el vecindario es 1. La figura se encoge."],
+  ["S2","Dilatación","El píxel se enciende si ALGUNO del vecindario es 1. La figura crece."],
+  ["S2","Apertura","Erosión y después dilatación. Limpia por fuera: puntos aislados, istmos, protuberancias. «Cuando abre no sella.»"],
+  ["S2","Cierre","Dilatación y después erosión. Rellena por dentro: fisuras, poros, agujeros."],
+  ["S2","Lo primero antes de un ejercicio de morfología","Definir cuál es el fondo y cuál la figura. Si no lo dicen: figura = 1 blanco, fondo = 0 negro, y dejarlo escrito."],
+  ["S2","Sobel contra Prewitt","Ambos 3×3. Sobel tiene peso 2 en la fila o columna central (suavizado implícito); Prewitt, pesos uniformes."],
+  ["S2","Roberts Cross","El único de 2×2. Trabaja en diagonal; rápido y muy sensible al ruido."],
+  ["S2","Kirsch","Ocho máscaras de compás, una por dirección; queda la respuesta máxima. Microdefectos. Lento."],
+  ["S2","Los cuatro pasos de Canny","Suavizado gaussiano, gradiente con Sobel, supresión de no máximos (borde de 1 píxel), histéresis con dos umbrales."],
+  ["S2","Filtro contra sal y pimienta, y por qué","Mediana: ordena los 9 valores y toma el quinto; el extremo nunca queda al medio. El gaussiano no sirve: promedia."],
+  ["S2","Otsu","Umbral global calculado automáticamente desde el histograma bimodal. No es adaptativo."],
+  ["S2","Umbralización adaptativa","Un umbral por zona. Sirve con iluminación dispareja; el caso del material es OCR."],
+  ["S2","Hough","Detecta líneas y círculos por votación. Polares porque las verticales tendrían pendiente infinita. Variantes: estándar y probabilística."],
+  ["S2","Blob","Región de píxeles conectados. Se filtra por área, circularidad, perímetro; así se ignoran las motas de polvo."],
+  ["S2","Harris","Esquinas: la intensidad cambia en las dos direcciones. Dos autovalores grandes = esquina; uno = borde; ninguno = plana."],
+  ["S2","El pipeline completo","Grises → filtro → bordes → binarización → morfología → detección."]
+];
+function mountCards(){
+  const root = $("cards"); let queue = [], total = 0, flipped = false, filt = "all";
+  const sF = h("select",{id:"cd-f"}, opt("all","Las dos solemnes"), opt("S1","Solo Solemne 1"), opt("S2","Solo Solemne 2"));
+  const body = h("div");
+  root.append(h("div",{class:"lab-h"}, h("b",{text:"Mazo"}), h("span",{text:CARDS.length+" tarjetas"})), h("div",{class:"row"}, field("Mazo", sF)), body);
+  sF.addEventListener("change", () => { filt = sF.value; reset(); });
+  function reset(){ queue = shuffle(CARDS.filter(c => filt === "all" || c[0] === filt)); total = queue.length; flipped = false; draw(); }
+  function draw(){
+    if (!queue.length){ body.replaceChildren(h("div",{class:"verdict ok"}, h("h4",{text:"Mazo terminado"}), h("button",{class:"btn pri",type:"button",text:"Barajar de nuevo",onclick:reset}))); return; }
+    const c = queue[0];
+    const card = h("button",{class:"card3d"+(flipped ? " back" : ""),type:"button"}, h("small",{text:(flipped ? "Respuesta" : "Pregunta")+" · "+c[0]}), flipped ? c[2] : c[1]);
+    card.addEventListener("click", () => { flipped = !flipped; draw(); });
+    const next = knew => { registrar("tarjetas", c[1], knew); queue.shift(); if (!knew) queue.push(c); flipped = false; draw(); };
+    setKids(body,
+      h("div",{class:"meter"}, h("span",{text:"Quedan "+queue.length+" de "+total}), h("span",{text:flipped ? "¿La sabías?" : "Toca la tarjeta para ver la respuesta"})),
+      card,
+      flipped ? h("div",{class:"row"}, h("button",{class:"btn pri",type:"button",text:"La sabía",onclick:() => next(true)}), h("button",{class:"btn",type:"button",text:"No la sabía",onclick:() => next(false)})) : null);
+  }
+  reset();
+}
+
+/* ============ simulacro ============ */
+function mountSimu(){
+  const root = $("simu"); let tick = null;
+  function menu(){
+    if (tick){ clearInterval(tick); tick = null; }
+    const sD = h("select",{id:"sm-d"}, opt("120","120 minutos, como la solemne"), opt("90","90 minutos"), opt("60","60 minutos"), opt("0","Sin reloj"));
+    root.replaceChildren(h("div",{class:"lab"},
+      h("div",{class:"lab-h"}, h("b",{text:"Antes de empezar"}), h("span",{text:"simulacro"})),
+      h("ul",null, h("li",{text:"Ejercicio 1: máscara de convolución 5×5 con escalamiento."}), h("li",{text:"Ejercicio 2: frecuencia, un patrón periódico y una transición."}), h("li",{text:"Ejercicio 3: apertura o cierre sobre matriz binaria 8×8."}), h("li",{text:"Quince alternativas: seis de la Solemne 1 y nueve de la Solemne 2."})),
+      h("div",{class:"row"}, field("Duración", sD), h("button",{class:"btn pri",type:"button",text:"Empezar",onclick:() => start(+sD.value)}))));
+  }
+  function start(mins){
+    const parts = [
+      {t:"Ejercicio 1 · Máscara de convolución", tema:"convolucion", w:1/3, ex:ConvEx(5)},
+      {t:"Ejercicio 2a · Frecuencia de un patrón", tema:"frecuencia", w:1/6, ex:FreqEx("A")},
+      {t:"Ejercicio 2b · Tipo de transición", tema:"frecuencia", w:1/6, ex:FreqEx("B")},
+      {t:"Ejercicio 3 · Morfología", tema:"morfologia", w:1/3, ex:MorfEx(8,true)}
+    ];
+    const th = shuffle(shuffle(Q.filter(x => x.s === "S1")).slice(0,6).concat(shuffle(Q.filter(x => x.s === "S2")).slice(0,9)));
+    const clock = h("div",{class:"clock",text:""}), summary = h("div"), nodes = [summary, clock];
+    parts.forEach(p => { p.out = h("div"); nodes.push(h("div",{class:"lab"}, h("div",{class:"lab-h"}, h("b",{text:p.t}), h("span",{text:"desarrollo"})), p.ex.el, p.out)); });
+    const sets = th.map((it,qi) => {
+      const opts = shuffle(it.o.map((t,i) => ({t:t, c:i===0}))), name = newId("sq");
+      const labels = opts.map(o => h("label",null, h("input",{type:"radio",name:name}), h("span",{text:o.t})));
+      const fs = h("fieldset",{class:"sq"}, h("legend",{text:(qi+1)+". "+it.q}), labels);
+      return { it:it, opts:opts, labels:labels, fs:fs };
+    });
+    const bSend = h("button",{class:"btn pri",type:"button",text:"Entregar"});
+    nodes.push(h("div",{class:"lab"}, h("div",{class:"lab-h"}, h("b",{text:"Alternativas"}), h("span",{text:"15 preguntas"})), sets.map(s => s.fs)), h("div",{class:"row"}, bSend));
+    root.replaceChildren.apply(root, nodes);
+    let done = false;
+    if (mins){
+      const end = Date.now() + mins*60000;
+      const upd = () => { const s = Math.max(0, Math.round((end-Date.now())/1000)); clock.textContent = Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); if (s <= 0) submit(); };
+      upd(); tick = setInterval(upd, 1000);
+    } else clock.hidden = true;
+    bSend.addEventListener("click", submit);
+    function submit(){
+      if (done) return; done = true;
+      if (tick){ clearInterval(tick); tick = null; } clock.hidden = true; bSend.disabled = true;
+      let ej = 0;
+      parts.forEach(p => {
+        const r = p.ex.grade(); ej += r.score*p.w;
+        p.out.replaceChildren(h("div",{class:"verdict "+(r.ok ? "ok" : "bad")}, h("h4",{text:(r.ok ? "Correcto" : "Con errores")+" · "+Math.round(r.score*100)+"%"}), r.sol));
+        registrar(p.tema, "simulacro · "+r.detalle, r.ok);
+      });
+      let good = 0;
+      sets.forEach(s => {
+        let chosen = -1;
+        s.labels.forEach((l,i) => { const inp = l.querySelector("input"); if (inp.checked) chosen = i; inp.disabled = true; });
+        const ok = chosen >= 0 && s.opts[chosen].c; if (ok) good++;
+        s.labels.forEach((l,i) => { if (s.opts[i].c) l.classList.add("right"); else if (i === chosen) l.classList.add("miss"); });
+        s.fs.appendChild(h("p",{class:"why"}, s.it.e+" ", h("span",{class:"src",text:s.it.c})));
+        registrar(s.it.s === "S1" ? "teoria-s1" : "teoria-s2", "simulacro · "+s.it.q+(ok ? "" : " · respondió: "+(chosen >= 0 ? s.opts[chosen].t : "en blanco")), ok);
+      });
+      const pe = Math.round(ej*100), pt = Math.round(good*100/sets.length), tot = Math.round((pe+pt)/2);
+      registrar("simulacro", "ejercicios "+pe+"% · alternativas "+pt+"% · total "+tot+"%", tot >= 60);
+      summary.replaceChildren(h("div",{class:"lab"},
+        h("div",{class:"lab-h"}, h("b",{text:"Resultado: "+tot+"% de logro"}), h("span",{text:"simulacro"})),
+        h("div",{class:"kv",html:"Ejercicios de desarrollo: <b>"+pe+"%</b> · Alternativas: <b>"+good+" de "+sets.length+"</b> ("+pt+"%)<br>Mitad y mitad, como describió el profe la Solemne 2. La escala de notas no está en tus apuntes: esto es porcentaje de logro, no una nota."}),
+        h("p",{text:"Más abajo queda cada ejercicio con su procedimiento y cada alternativa con su explicación."}),
+        h("button",{class:"btn pri",type:"button",text:"Nuevo simulacro",onclick:menu})));
+      window.scrollTo(0,0);
+    }
+  }
+  menu();
+}
+
+/* ============ arranque ============ */
+(function ramp(){ const r = $("ramp"); for (let i=0;i<16;i++){ const g = Math.round(i*17); const s = h("i"); s.style.background = "rgb("+g+","+g+","+g+")"; r.appendChild(s); } })();
+(function count(){
+  const now = new Date(), a = new Date(now.getFullYear(), now.getMonth(), now.getDate()), b = new Date(2026, 10, 27), d = Math.round((b-a)/86400000);
+  $("dias").textContent = d > 0 ? d : d === 0 ? "Hoy" : "—";
+  $("dias-txt").textContent = d > 1 ? "días para el examen" : d === 1 ? "día para el examen" : d === 0 ? "es el examen" : "examen rendido";
+})();
+(function todo(){
+  const saved = store.get("bva-todo", {});
+  Array.prototype.forEach.call($("todo").querySelectorAll("input"), inp => {
+    inp.checked = !!saved[inp.id];
+    inp.addEventListener("change", () => { const s = store.get("bva-todo", {}); s[inp.id] = inp.checked; store.set("bva-todo", s); });
+  });
+})();
+drawProg();
+
+const VIEWS = ["inicio","teoria-s1","convolucion","frecuencia","morfologia","bordes","filtros","binarizacion","deteccion","alternativas","tarjetas","simulacro"];
+let convSize = 5;
+const MOUNT = {
+  "teoria-s1": mountS1,
+  "convolucion": () => {
+    mountConvWalk();
+    practice($("conv-ex"), "Ejercicio tipo prueba", () => ConvEx(convSize), "convolucion", fresh => {
+      const s = h("select",{id:"cx-size"}, opt("5","5×5, como la prueba (9 resultados)"), opt("4","4×4, rápido (4 resultados)"));
+      s.addEventListener("change", () => { convSize = +s.value; fresh(); });
+      return h("div",{class:"row"}, field("Tamaño de la imagen", s));
+    });
+  },
+  "frecuencia": () => { mountFrecGen(); practice($("frec-ex"), "Ejercicio tipo prueba", () => FreqEx(), "frecuencia"); },
+  "morfologia": () => { mountMorfLab(); practice($("morf-ex"), "Ejercicio tipo prueba", () => MorfEx(8), "morfologia"); },
+  "bordes": mountBordes, "filtros": mountFiltros, "binarizacion": mountBinar, "deteccion": mountDeteccion,
+  "alternativas": mountQuiz, "tarjetas": mountCards, "simulacro": mountSimu
+};
+const mounted = {};
+function show(name){
+  if (VIEWS.indexOf(name) < 0) name = "inicio";
+  VIEWS.forEach(v => { $("v-"+v).hidden = v !== name; });
+  Array.prototype.forEach.call($("nav").querySelectorAll("a"), a => { if (a.getAttribute("href") === "#"+name) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
+  if (MOUNT[name] && !mounted[name]){ mounted[name] = true; try{ MOUNT[name](); }catch(e){ console.error(e); } }
+  window.scrollTo(0,0);
+}
+window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+show(location.hash.slice(1) || "inicio");
+})();
+</script>
+<p style="text-align:center;margin:36px 16px 28px;font:500 15px system-ui,sans-serif"><a href="./" style="color:inherit">← Todas las herramientas</a></p>

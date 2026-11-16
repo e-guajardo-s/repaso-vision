@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Simulacro Solemne 1</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap">
+<style>
+/* Hoja de prueba impresa: encabezado institucional, preguntas numeradas, marcas en tinta azul. */
+:root{
+  --desk:#e7eaf0; --paper:#ffffff; --ink:#151a24; --muted:#5a6273; --rule:#c9ceda; --soft:#f1f3f7;
+  --pen:#1f3fbf; --pen-soft:#e3e8fb; --ok:#13703c; --ok-soft:#dcf1e4; --bad:#b3261e; --bad-soft:#fbe1de; --warn:#8a5300; --warn-soft:#fbeed3;
+  --f-sheet:"IBM Plex Serif",Georgia,"Times New Roman",serif;
+  --f-ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --desk:#0c0f15; --paper:#161a23; --ink:#e5e8f0; --muted:#9aa2b5; --rule:#2e3546; --soft:#1e2330;
+  --pen:#93a8ff; --pen-soft:#232c55; --ok:#6fd49b; --ok-soft:#133523; --bad:#ff958c; --bad-soft:#43201d; --warn:#f0bb5a; --warn-soft:#3a2a0e;
+  color-scheme:dark } }
+:root[data-theme="dark"]{
+  --desk:#0c0f15; --paper:#161a23; --ink:#e5e8f0; --muted:#9aa2b5; --rule:#2e3546; --soft:#1e2330;
+  --pen:#93a8ff; --pen-soft:#232c55; --ok:#6fd49b; --ok-soft:#133523; --bad:#ff958c; --bad-soft:#43201d; --warn:#f0bb5a; --warn-soft:#3a2a0e;
+  color-scheme:dark }
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--desk);color:var(--ink);font:400 16px/1.55 var(--f-ui);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 64px}
+.sheet{max-width:860px;margin:0 auto;background:var(--paper);border:1px solid var(--rule);border-radius:4px;box-shadow:0 1px 0 var(--rule),0 12px 32px -18px rgba(10,20,40,.35);padding:clamp(18px,4vw,44px)}
+[hidden]{display:none!important}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+
+/* encabezado */
+.head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 24px;border-bottom:2px solid var(--ink);padding-bottom:14px}
+.inst{font:600 .78rem/1.35 var(--f-ui);letter-spacing:.12em;text-transform:uppercase}
+.inst small{display:block;font-weight:500;letter-spacing:.04em;text-transform:none;color:var(--muted);font-size:.86rem;margin-top:3px}
+.title{font:600 clamp(1.5rem,3.6vw,2rem)/1.1 var(--f-sheet);margin:14px 0 2px;text-wrap:balance}
+.disclaimer{font-size:.82rem;color:var(--muted);margin:0}
+.box{border:1px solid var(--ink);min-width:150px;text-align:center;align-self:start}
+.box div{padding:6px 10px;border-bottom:1px solid var(--ink);font:500 .72rem var(--f-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.box b{display:block;font:600 1.5rem/1.2 var(--f-mono);color:var(--pen);padding:8px 10px;font-variant-numeric:tabular-nums}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px 22px;margin:14px 0 6px;font-size:.92rem}
+.fields label{display:flex;align-items:baseline;gap:8px;min-width:0}
+.fields span{color:var(--muted);white-space:nowrap}
+.fields input,.fields output{flex:1;min-width:0;border:0;border-bottom:1px solid var(--rule);background:transparent;padding:2px 2px;font:500 1rem var(--f-sheet);color:var(--pen)}
+.fields output{font-family:var(--f-mono);font-size:.95rem}
+.instr{border:1px solid var(--rule);background:var(--soft);border-radius:3px;padding:12px 16px;margin:16px 0 4px;font-size:.92rem}
+.instr ol{margin:4px 0 0;padding-left:20px}
+.instr li{margin-bottom:3px}
+
+/* portada */
+.setup{display:grid;gap:14px;margin-top:20px}
+.row{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px;font-size:.84rem;color:var(--muted);font-weight:500}
+.field select,.field input{font:500 1rem var(--f-ui);color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:8px 10px;min-width:0}
+.field input{font-family:var(--f-mono);text-transform:uppercase;width:12ch}
+.btn{font:600 .95rem var(--f-ui);border:1px solid var(--rule);background:var(--soft);color:var(--ink);border-radius:4px;padding:9px 16px;cursor:pointer}
+.btn:hover{border-color:var(--pen)}
+.btn.pri{background:var(--pen);border-color:var(--pen);color:var(--paper)}
+.btn:disabled{opacity:.5;cursor:default}
+.note{font-size:.86rem;color:var(--muted);margin:0}
+.hist{width:100%;border-collapse:collapse;font-size:.88rem;margin-top:6px}
+.hist th,.hist td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--rule)}
+.hist th{font:600 .72rem var(--f-ui);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.hist td{font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto;max-width:100%}
+
+/* barra fija */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;background:var(--paper);border-bottom:1px solid var(--rule);margin:0 calc(-1 * clamp(18px,4vw,44px));padding:10px clamp(18px,4vw,44px)}
+.bar .clock{font:600 1.1rem var(--f-mono);font-variant-numeric:tabular-nums}
+.bar .clock.low{color:var(--bad)}
+.bar .prog{font-size:.88rem;color:var(--muted)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+
+/* preguntas */
+.part{font:600 1.05rem var(--f-ui);letter-spacing:.06em;text-transform:uppercase;margin:26px 0 4px;padding-bottom:6px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.part small{font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted)}
+.q{padding:16px 0;border-bottom:1px dashed var(--rule);break-inside:avoid}
+.qh{display:flex;gap:10px;font:500 1.04rem/1.45 var(--f-sheet)}
+.qh .n{font-weight:600;min-width:1.8em}
+.qh .tag{margin-left:auto;font:500 .7rem var(--f-mono);color:var(--muted);white-space:nowrap;padding-top:4px}
+.opts{list-style:none;margin:8px 0 0;padding:0 0 0 2.3em;display:grid;gap:3px}
+.opts label{display:flex;gap:10px;align-items:flex-start;padding:5px 8px;border-radius:4px;cursor:pointer;font:400 1rem/1.45 var(--f-sheet)}
+.opts label:hover{background:var(--soft)}
+.opts input{position:absolute;opacity:0;width:1px;height:1px}
+.opts .l{flex:none;width:1.7em;height:1.7em;border:1.5px solid var(--muted);border-radius:50%;display:grid;place-items:center;font:600 .82rem var(--f-mono);margin-top:-1px}
+.opts input:checked + .l{border-color:var(--pen);background:var(--pen);color:var(--paper)}
+.opts input:focus-visible + .l{outline:2px solid var(--pen);outline-offset:2px}
+.opts label.right{background:var(--ok-soft)} .opts label.right .l{border-color:var(--ok);color:var(--ok)}
+.opts label.right input:checked + .l{background:var(--ok);color:var(--paper)}
+.opts label.miss{background:var(--bad-soft)} .opts label.miss input:checked + .l{background:var(--bad);border-color:var(--bad)}
+.fb{margin:12px 0 0 2.3em;padding:12px 14px;border-radius:4px;font-size:.93rem;line-height:1.5;border-left:3px solid var(--ok);background:var(--ok-soft)}
+.fb.bad{border-left-color:var(--bad);background:var(--bad-soft)}
+.fb p{margin:0 0 6px}
+.fb .verd{font-size:.98rem}
+.fb h5{margin:12px 0 6px;font:600 .74rem var(--f-ui);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.fb .src{font:500 .72rem var(--f-mono);color:var(--muted);margin-top:10px}
+.steps,.optx{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.steps li,.optx li{display:grid;grid-template-columns:1.8em minmax(0,1fr);gap:6px;background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:7px 9px}
+.optx li.is-ok{border-color:var(--ok);box-shadow:inset 3px 0 0 var(--ok)}
+.optx li.is-mine{border-color:var(--bad);box-shadow:inset 3px 0 0 var(--bad)}
+.lt{font:600 .9rem var(--f-mono)}
+.ot{font-family:var(--f-sheet)}
+.why{color:var(--muted);font-size:.9rem;margin-top:2px}
+.tg{display:inline-block;font:600 .66rem var(--f-ui);letter-spacing:.06em;text-transform:uppercase;border-radius:3px;padding:2px 6px;margin-right:6px;vertical-align:1px}
+.tg.ok{background:var(--ok);color:var(--paper)} .tg.bad,.tg.mine{background:var(--bad);color:var(--paper)}
+.proc{margin:0;padding-left:20px;display:grid;gap:4px}
+.only-wrong .q.is-right{display:none}
+.btn[aria-pressed="true"]{border-color:var(--pen);background:var(--pen-soft)}
+
+/* desarrollo */
+.dev{display:grid;gap:8px;margin-top:10px;padding-left:2.3em}
+.devrow{display:grid;grid-template-columns:1.6em minmax(0,1fr) minmax(0,1.4fr);gap:8px 12px;align-items:end}
+.devrow > span{font:600 .9rem var(--f-mono);color:var(--muted);padding-bottom:6px}
+.devrow input{width:100%;border:0;border-bottom:1px solid var(--muted);background:transparent;padding:6px 2px;font:500 1rem var(--f-sheet);color:var(--pen)}
+.devrow input::placeholder{color:var(--muted);opacity:.6;font-family:var(--f-ui);font-size:.85rem}
+.devres{grid-column:2 / -1;font-size:.9rem;border-radius:4px;padding:8px 12px}
+.devsteps{margin:0 0 6px;padding-left:20px;display:grid;gap:3px}
+.devsteps li::marker{font-weight:600}
+.devsteps .st-ok::after{content:" ✓";color:var(--ok);font-weight:600}
+.devsteps .st-bad::after{content:" ✗";color:var(--bad);font-weight:600}
+.devsteps .st-na{color:var(--muted)}
+.devline{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:space-between;border-top:1px solid var(--rule);padding-top:6px}
+.devres.p1{background:var(--ok-soft)} .devres.p0{background:var(--warn-soft)} .devres.m1{background:var(--bad-soft)}
+.devres select{font:500 .86rem var(--f-ui);border:1px solid var(--rule);background:var(--paper);border-radius:4px;padding:3px 6px}
+.key{margin:14px 0 0 2.3em;border:1px solid var(--rule);border-radius:4px;padding:12px 16px;font-size:.92rem}
+.key h4{margin:10px 0 4px;font:600 .95rem var(--f-ui)}
+.key h4:first-child{margin-top:0}
+.key ul{margin:0;padding-left:18px}
+
+/* resultado */
+.result{border:2px solid var(--pen);border-radius:4px;padding:16px 18px;margin:18px 0 6px;background:var(--pen-soft)}
+.result h2{margin:0 0 8px;font:600 1.3rem var(--f-sheet)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:10px 0}
+.stats div{background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:8px 10px}
+.stats small{display:block;color:var(--muted);font-size:.76rem}
+.stats b{font:600 1.25rem var(--f-mono);font-variant-numeric:tabular-nums}
+.temas{list-style:none;padding:0;margin:8px 0;display:grid;gap:4px}
+.temas li{display:flex;justify-content:space-between;gap:12px;font-size:.9rem;border-bottom:1px solid var(--rule);padding:3px 0}
+.temas li.weak{color:var(--bad);font-weight:600}
+@media (max-width:620px){
+  .head{grid-template-columns:minmax(0,1fr)}
+  .box{justify-self:start}
+  .opts,.dev,.fb,.key{padding-left:0;margin-left:0}
+  .devrow{grid-template-columns:1.4em minmax(0,1fr)}
+  .devrow input:last-of-type{grid-column:2}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="sheet">
+  <header class="head">
+    <div>
+      <div class="inst">Simulacro no oficial<small>Visión Artificial · material de estudio hecho por un alumno, no por el profesor</small></div>
+      <h1 class="title">Solemne N°1 · Simulacro</h1>
+      <p class="disclaimer">Simulacro de estudio personal, armado con el material del curso. No es una evaluación oficial.</p>
+    </div>
+    <div class="box"><div>Puntaje</div><b id="hd-pts">— / —</b><div>Nota</div><b id="hd-nota">—</b></div>
+  </header>
+
+  <div class="fields">
+    <label><span>Nombre:</span><input id="nombre" type="text" autocomplete="off"></label>
+    <label><span>Fecha:</span><output id="fecha"></output></label>
+    <label><span>Forma:</span><output id="forma">—</output></label>
+  </div>
+
+  <!-- portada -->
+  <section id="setup">
+    <div class="instr">
+      <strong>Instrucciones</strong>
+      <ol>
+        <li>Materia: diapositivas 1 a 6 y lo visto en clases.</li>
+        <li>Parte I: selección múltiple, una sola alternativa por pregunta. Cuando haya alternativas combinadas («solo a y b», «todas son correctas»…), marque la más completa.</li>
+        <li>Parte II: desarrollo. Las aplicaciones deben ser las vistas en clases: <strong>cada respuesta inventada descuenta 1 punto</strong>.</li>
+        <li>Tiempo máximo 2 horas. Se permite calculadora; celular, no.</li>
+      </ol>
+    </div>
+    <div class="setup">
+      <div class="row">
+        <label class="field">Preguntas de alternativas
+          <select id="cfg-n"><option value="15">15</option><option value="20" selected>20</option><option value="25">25</option></select></label>
+        <label class="field">Reloj
+          <select id="cfg-t"><option value="120">120 min, como la solemne</option><option value="60">60 min</option><option value="30" selected>30 min, competitivo</option><option value="0">Sin reloj</option></select></label>
+        <button class="btn pri" id="btn-new" type="button">Nueva forma</button>
+      </div>
+      <div class="row">
+        <label class="field">Repetir una forma (código)
+          <input id="cfg-code" type="text" maxlength="7" placeholder="20-K7QM" autocomplete="off"></label>
+        <button class="btn" id="btn-code" type="button">Rendir esa forma</button>
+        <button class="btn" id="btn-resume" type="button" hidden>Continuar la que dejé a medias</button>
+      </div>
+      <p class="note" id="cfg-msg">Cada forma tiene preguntas y alternativas en otro orden, y combinaciones nuevas. Con el código se repite exactamente la misma, para comparar intentos.</p>
+      <div id="hist-box"></div>
+    </div>
+  </section>
+
+  <!-- prueba -->
+  <section id="exam" hidden>
+    <div class="bar"><span class="prog" id="bar-prog"></span><span class="clock" id="bar-clock"></span><button class="btn pri" id="btn-send" type="button">Entregar</button></div>
+    <div id="result-top"></div>
+    <div class="part"><span>I. Selección múltiple</span><small id="p1-pts"></small></div>
+    <div id="p1"></div>
+    <div class="part"><span>II. Desarrollo</span><small>5 puntos · inventar descuenta</small></div>
+    <div class="q">
+      <div class="qh"><span class="n" id="dev-n"></span><span>Mencione 5 ingenierías y un área de aplicación de la visión artificial para cada una, según lo visto en clases. Cada respuesta correcta vale 1 punto; <strong>cada ingeniería o aplicación inventada descuenta 1 punto</strong>.</span></div>
+      <div class="dev" id="dev"></div>
+      <div id="dev-key"></div>
+    </div>
+    <div class="row" style="margin-top:22px" id="end-row"><button class="btn pri" id="btn-send2" type="button">Entregar</button></div>
+  </section>
+</main>
+
+<script>
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+function h(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  if (attrs) for (const k in attrs){ const v = attrs[k]; if (v == null || v === false) continue;
+    if (k === "class") e.className = v; else if (k === "text") e.textContent = v; else if (k === "html") e.innerHTML = v;
+    else if (k.slice(0,2) === "on") e.addEventListener(k.slice(2), v); else e.setAttribute(k, v === true ? "" : v); }
+  for (const c of kids.flat(3)){ if (c == null || c === false) continue; e.appendChild(typeof c === "object" ? c : document.createTextNode(String(c))); }
+  return e;
+}
+const store = { get(k,d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
+                set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }, del(k){ try{ localStorage.removeItem(k); }catch(e){} } };
+const fmt = (v,d) => v.toFixed(d).replace(".", ",");
+const norm = s => String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
+
+/* ---------- azar con semilla: misma forma, misma prueba ---------- */
+function hashStr(s){ let h = 1779033703 ^ s.length; for (let i=0;i<s.length;i++){ h = Math.imul(h ^ s.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; } return h >>> 0; }
+function rngFrom(seed){ let a = seed >>> 0; return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const shuf = (a, r) => { a = a.slice(); for (let i=a.length-1;i>0;i--){ const j = Math.floor(r()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; };
+const pick = (a, r) => a[Math.floor(r()*a.length)];
+const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+const newCode = n => n + "-" + Array.from({length:4}, () => ALPH[Math.floor(Math.random()*ALPH.length)]).join("");
+
+/* ---------- aplicaciones: literal de la diapositiva 3 ---------- */
+const ING = [
+  {id:"CI", ing:"Ingeniería Civil Industrial", apps:[
+    {t:"Clasificación Industrial", k:["clasificacion industrial"]},
+    {t:"Logística – Análisis de desperfectos en palets", k:["palet","pallet","desperfecto"]},
+    {t:"Packaging – Lectura de códigos de barras – Trazabilidad", k:["codigo de barra","codigos de barra","trazabilidad","packaging"]}]},
+  {id:"II", ing:"Ingeniería Industrial", apps:[
+    {t:"Metrología y calidad", k:["metrologia"]},
+    {t:"Alimentación – Color y medida de fruta", k:["fruta","alimentacion"]},
+    {t:"Automoción – Clasificación y medida de autopartes", k:["autoparte","automocion"]},
+    {t:"Madera – Evaluación de color y defectos", k:["madera"]}]},
+  {id:"LT", ing:"Ingeniería en Logística y Transporte", apps:[
+    {t:"Inspección de las vías de ferrocarril", k:["ferrocarril","via ferrea","vias ferreas","vias del tren","via del tren"]},
+    {t:"Crash – Cámaras de alta velocidad – \"Slow Motion\"", k:["crash","alta velocidad","slow motion","camara lenta"]},
+    {t:"Tráfico – Identificación de matrículas y modelos", k:["matricula","patente","trafico"]},
+    {t:"Transporte – Cámaras en automóviles", k:["automovil","camaras en auto","camara en auto"]}]},
+  {id:"AR", ing:"Ingeniería en Automatización y Robótica", apps:[
+    {t:"Navegación en robótica (AGV)", k:["agv","navegacion"]},
+    {t:"Pick and place", k:["pick and place","pick place","pick"]}]},
+  {id:"SP", ing:"Ingeniería en Seguridad y Prevención de Riesgos", apps:[
+    {t:"Antropometría y ergonomía", k:["antropometria","ergonomia"]},
+    {t:"Biometría – Identificación – Facial, Iris,…", k:["biometria","facial","iris"]},
+    {t:"Seguridad/Vigilancia – Control de objetos abandonados en aeropuertos", k:["objetos abandonados","objeto abandonado","aeropuerto","vigilancia"]},
+    {t:"Construcción – Fugas de calor en edificios mediante cámaras térmicas", k:["fuga","termica","termografia","edificio"]}]}
+];
+/* en la diapositiva 3 bajo una ingeniería, pero no en la pauta */
+const EXTRA = [{ing:"SP", t:"Sistema de visión artificial para evitar accidentes con maquinarias", k:["accidente","maquinaria"]}];
+/* áreas de la lámina que no están bajo ninguna de las cinco ingenierías */
+const AREAS = [
+  {t:"Biología, geología, meteorología, astronomía", k:["biologia","geologia","meteorologia","astronomia"]},
+  {t:"Forense – Identificación de huellas dactilares", k:["forense","huella","dactilar"]},
+  {t:"Medicina – Cámaras en sistemas de oftalmología", k:["oftalmologia","medicina"]},
+  {t:"Microscopía – Cámaras para fluorescencia", k:["microscop","fluorescencia"]},
+  {t:"Minería – Control 3D de tamaño de rocas", k:["roca","mineria"]},
+  {t:"Impresión – Control de texto escrito – OCR", k:["ocr","texto escrito","impresion"]}
+];
+function detectIng(s){
+  const n = norm(s); if (!n) return null;
+  if (/civil/.test(n) && /industrial/.test(n)) return "CI";
+  if (/logistica|transporte/.test(n)) return "LT";
+  if (/automatizacion|robotica/.test(n)) return "AR";
+  if (/seguridad|prevencion|riesgo/.test(n)) return "SP";
+  if (/industrial/.test(n)) return "II";
+  return null;
+}
+const hit = (n, ks) => ks.some(k => n.indexOf(k) >= 0);
+function detectApp(s){
+  const n = norm(s); if (!n) return null;
+  for (const g of ING) for (const a of g.apps) if (hit(n, a.k)) return {ing:g.id, t:a.t};
+  for (const a of EXTRA) if (hit(n, a.k)) return {ing:a.ing, t:a.t, extra:true};
+  for (const a of AREAS) if (hit(n, a.k)) return {ing:null, t:a.t};
+  return null;
+}
+const ingName = id => (ING.find(g => g.id === id) || {}).ing;
+
+/* ---------- banco: preguntas combinadas (a, b, c + combinaciones en d y e) ----------
+   T: [afirmación verdadera, por qué es verdadera]   F: [afirmación falsa, qué es lo correcto] */
+const COMBO = [
+ {tema:"Percepción", stem:"Respecto de la percepción humana, es correcto afirmar que:", src:"Diapositiva 1 · Clase 1",
+  T:[["Es un proceso cognoscitivo que depende de la experiencia personal.","La lámina la define como «proceso cognoscitivo = según experiencia personal»."],
+     ["Es subjetiva: las reacciones a un mismo estímulo varían de un individuo a otro.","Es la definición de «subjetiva» en la lámina."],
+     ["Es selectiva: no se puede percibir todo al mismo tiempo.","Es la definición de «selectiva» en la lámina."],
+     ["Es temporal: es un fenómeno a corto plazo que evoluciona según experiencia, motivaciones y necesidades.","Es la definición de «temporal» en la lámina."],
+     ["Permite a los sujetos formar una representación de la realidad de su entorno.","La lámina: los sujetos captan información que llega a los sistemas sensoriales y forman una representación de la realidad."]],
+  F:[["Es objetiva: un mismo estímulo produce la misma reacción en todas las personas.","Es subjetiva: la reacción a un mismo estímulo varía de un individuo a otro."],["Es permanente: no cambia con el tiempo.","Es temporal: evoluciona según experiencia, motivaciones y necesidades."],["Permite percibir todos los estímulos del entorno al mismo tiempo.","Es selectiva: no se puede percibir todo a la vez."],["Es un proceso puramente sensorial, sin interpretación.","Es un proceso cognoscitivo: interpreta lo que llega a los sentidos."]]},
+ {tema:"Cadena radiométrica", stem:"Sobre la cadena radiométrica vista en clases:", src:"Clases 1, 2 y 6",
+  T:[["Comienza en la fuente de energía.","«Lo primero es la energía»: de ahí nace lo que después rebota."],
+     ["El medio es el espacio por donde viaja la energía, entre la fuente y el objeto.","«El medio es el espacio que está entre la iluminación y el objeto»."],
+     ["Al llegar a la materia, la energía puede ser absorbida, transmitida, emitida o reflejada.","Son las cuatro acciones que el profe pidió anotar como pregunta de prueba."],
+     ["Termina en el sensor, que captura la energía que vuelve.","Después de la materia, la energía vuelve a pasar por el medio y llega al sensor."],
+     ["En una escena el rebote es múltiple: casi nunca hay un solo foco.","«Es muy poco probable que sea un solo foco dentro de la escena»."]],
+  F:[["Comienza en el sensor, que emite la energía hacia la escena.","Comienza en la fuente de energía; el sensor va al final."],["El medio no influye en la imagen capturada.","Importa: temperatura, partículas o agua cambian lo que llega."],["La materia solo puede reflejar la energía.","Puede absorber, transmitir, emitir o reflejar."],["Solo se aplica a la luz visible.","El profe habla de energía: pueden ser rayos X u otra radiación."]]},
+ {tema:"Cuerpos", stem:"En relación con los cuerpos ideales vistos en clases:", src:"Clase 2",
+  T:[["En el cuerpo negro toda la energía es absorbida.","Es la definición de cuerpo negro: no refleja ni transmite."],
+     ["En la ventana ideal toda la energía es transmitida, sin atenuarse.","Es la definición de ventana ideal: la luz atraviesa el vidrio sin atenuarse."],
+     ["En el espejo toda la energía es reflejada.","Es la definición de espejo."],
+     ["En el cuerpo opaco la energía no lo atraviesa: es emitida o reflejada.","Es la definición de cuerpo opaco."],
+     ["Son modelos: no existen en la vida real.","El profe lo dijo: «eso no existe en la vida real»."]],
+  F:[["En el cuerpo negro toda la energía es reflejada.","El cuerpo negro absorbe toda la energía."],["La ventana ideal emite energía propia.","No emite nada propio: solo transmite."],["El cuerpo opaco deja pasar la energía sin atenuarla.","Esa es la ventana ideal; al opaco la energía no lo atraviesa."],["El espejo absorbe toda la energía.","El espejo la refleja toda."]]},
+ {tema:"Óptica", stem:"Respecto de la reflexión y la refracción:", src:"Clase 2",
+  T:[["En la refracción la luz cambia de medio y cambia su ángulo.","Al cambiar de medio pasa del ángulo incidente al refractado."],
+     ["El lápiz que se ve quebrado dentro de un vaso con agua es un ejemplo de refracción.","Es el ejemplo que dio el profe para la ley de Snell."],
+     ["La ley de Snell relaciona el ángulo incidente y el refractado con el índice de cada medio.","n₁·sen θ₁ = n₂·sen θ₂, donde n es el índice de refracción de cada medio."],
+     ["En la reflexión la luz rebota.","Reflexión es el rebote; refracción es el cambio de medio."]],
+  F:[["En la refracción la luz rebota y vuelve al mismo medio.","Eso es la reflexión."],["La ley de Snell relaciona la intensidad de la luz con la distancia a la fuente.","Snell relaciona ángulos e índices: n₁·sen θ₁ = n₂·sen θ₂."],["El lápiz quebrado en el vaso es un ejemplo de reflexión.","Es refracción: la luz cambia de medio, del agua al aire."]]},
+ {tema:"Luz y espectro", stem:"Sobre la luz y el espectro electromagnético:", src:"Diapositiva 1 · Clases 1 y 2",
+  T:[["La luz es la parte de la radiación electromagnética que puede percibir el ojo humano.","Es la definición de la lámina (del latín lux, lucis)."],
+     ["La luz visible está aproximadamente entre 400 y 700 nm.","Es el rango que dio en clases, avisando que era pregunta de prueba."],
+     ["Bajo el visible está el ultravioleta y sobre él, el infrarrojo.","Bajo 400 nm, ultravioleta; sobre 700 nm, infrarrojo."],
+     ["La frecuencia infrarroja agita las partículas y produce calor.","«La frecuencia infrarrojo es capaz de mover partículas y agitarlas, produciendo calor»."],
+     ["Bajo los 20 m de profundidad en el mar se pierde el rojo.","Por eso el mar se ve azul: el azul es el último color en ser absorbido."]],
+  F:[["La luz visible está entre 40 y 70 nm.","Es entre 400 y 700 nm."],["Bajo el visible está el infrarrojo y sobre él, el ultravioleta.","Al revés: ultravioleta bajo 400 nm, infrarrojo sobre 700 nm."],["El ultravioleta es el que agita las partículas y produce calor.","Es el infrarrojo. El ultravioleta sirve, por ejemplo, para ver las marcas de los billetes."],["Bajo los 20 m de profundidad en el mar, el primer color que se pierde es el azul.","Se pierde el rojo; el azul es el último en ser absorbido, por eso el mar se ve azul."]]},
+ {tema:"Imagen", stem:"Respecto de la imagen, según lo visto en clases:", src:"Diapositivas 1 y 3 · Clase 1",
+  T:[["Viene del latín imago (retrato), del verbo imitari.","Así lo dice la lámina: imago (retrato) = verbo imitari."],
+     ["Es una imitación de la realidad según nuestra percepción.","Texto de la lámina: «imitación de la realidad según nuestra percepción»."],
+     ["Una imagen digital es una matriz de M filas por N columnas, y cada elemento es un píxel.","«Cada elemento de la grilla es un PIXEL»."],
+     ["Una imagen 2D es una función f(X, Y), donde f es la intensidad o nivel de gris en ese punto.","Es la definición de imagen digital de la diapositiva 3."]],
+  F:[["Una foto «en blanco y negro» tiene 256 niveles de gris.","Blanco y negro serían solo dos valores (imagen binaria); 256 niveles es escala de grises."],["Una imagen es siempre una fotografía tomada con una cámara.","Es lo que devuelve la energía después de tocar los materiales; no solo una cámara."],["Si X e Y son continuos e infinitos, la imagen es digital.","Es digital si X e Y son discretos y finitos."]]},
+ {tema:"Imagen", stem:"Sobre la profundidad de una imagen (bits por píxel):", src:"Diapositiva 3",
+  T:[["Con 8 bits hay 256 niveles: 0 es negro y 255 es blanco.","2⁸ = 256 niveles, del 0 (negro) al 255 (blanco)."],
+     ["Con 4 bits hay 16 niveles de gris.","2⁴ = 2·2·2·2 = 16."],
+     ["Con 1 bit hay 2 niveles: es una imagen binaria.","2¹ = 2: solo blanco y negro."],
+     ["Con 5 bits hay 32 niveles de gris.","2⁵ = 2·2·2·2·2 = 32."]],
+  F:[["Con 8 bits, 0 es blanco y 255 es negro.","0 es negro y 255 es blanco."],["Con 3 bits hay 16 niveles de gris.","3 bits dan 2³ = 8 niveles; 16 son 4 bits."],["Con 2 bits hay 2 niveles de gris.","2 bits dan 2² = 4 niveles; 2 niveles es 1 bit."]]},
+ {tema:"Histograma", stem:"En relación con el histograma:", src:"Diapositiva 4",
+  T:[["Es la gráfica que muestra la cantidad de píxeles que tienen una determinada intensidad luminosa.","Es la definición textual de la diapositiva 4."],
+     ["La intensidad es la magnitud física que mide cuánta luz hay presente, ligada a la energía.","Es la definición de intensidad de la diapositiva 4."],
+     ["Si hay mucha variación de intensidades se habla de alto contraste.","«Si hay mucha variación de intensidades hablamos de alto contraste»."],
+     ["El umbralado (binarización) deja la imagen solo en blanco y negro.","«Binarización: solo colores blanco y negro»."]],
+  F:[["Muestra la posición de cada píxel dentro de la imagen.","Muestra cuántos píxeles hay de cada intensidad, no dónde están."],["Si hay poca variación de intensidades se habla de alto contraste.","Poca variación es bajo contraste."],["El negativo duplica la intensidad de cada píxel.","El negativo invierte las intensidades: lo claro pasa a oscuro y viceversa."]]},
+ {tema:"Histograma", stem:"Sobre las modificaciones del histograma vistas en clases:", src:"Diapositiva 4",
+  T:[["Aclarar sumando un valor desplaza el histograma hacia el 255.","Al sumar, todas las intensidades suben: el histograma se corre a la derecha."],
+     ["Oscurecer desplaza el histograma hacia el 0.","Al restar, todas bajan: el histograma se corre a la izquierda."],
+     ["El negativo invierte las intensidades.","Lo claro pasa a oscuro y lo oscuro a claro."],
+     ["El umbralado deja la imagen con solo dos valores.","Cada píxel queda en negro o en blanco según si supera el umbral."]],
+  F:[["Aclarar desplaza el histograma hacia el 0.","Aclarar lo lleva hacia el 255 (blanco)."],["El umbralado conserva todos los niveles de gris.","Deja solo blanco y negro."],["Aumentar el contraste reduce la variación de intensidades.","Más contraste es más variación de intensidades."]]},
+ {tema:"Convolución", stem:"Respecto de la matriz de convolución:", src:"Diapositiva 4 · Clase 4",
+  T:[["Aplica sobre cada punto de la matriz un cálculo basado en sus puntos vecinos.","Es la definición de la diapositiva 4."],
+     ["Es una máscara que recorre la imagen píxel por píxel.","«Máscara que recorre la imagen pixel por pixel»."],
+     ["Modifica el valor de cada píxel a partir de una operación matemática.","«Se modifica el valor de cada pixel a partir de una operación matemática»."],
+     ["Su idea se resume en «dime con quién andas y te diré quién eres».","Es la frase de la lámina: el píxel nuevo depende de sus vecinos."],
+     ["El resultado se divide por la norma, la suma de los coeficientes de la máscara.","x'₄ = (w₀x₀ + … + w₈x₈) / k, donde k es la norma."]],
+  F:[["Modifica cada píxel sin considerar a sus vecinos.","Tiene en cuenta el píxel y su entorno."],["La máscara debe ser par para tener un píxel pivote.","Debe ser impar, para que exista un centro."],["Mientras más grande la máscara, menos potente el efecto.","Más grande, más potente."]]},
+ {tema:"Filtros", stem:"Sobre el filtrado paso bajo (suavizado):", src:"Diapositiva 6",
+  T:[["Todos sus coeficientes son positivos y suman 1.","«Todos los coeficientes positivos y de suma 1»."],
+     ["Se usa para reducir ruido.","«Se utilizan para reducir ruido»."],
+     ["Produce un difuminado, mayor cuanto mayor sea la máscara.","«…también producen un difuminado, tanto mayor cuanto mayor sea el tamaño de la máscara»."],
+     ["Sirve para desenfocar y suavizar.","La lámina: desenfocar, suavizar, eliminar ruido."]],
+  F:[["Sus coeficientes deben sumar 0.","Eso es el paso alto."],["Se usa principalmente para resaltar bordes.","Resaltar bordes es paso alto."],["Mientras más grande la máscara, menor el difuminado.","Al revés: mayor máscara, mayor difuminado."]]},
+ {tema:"Filtros", stem:"Sobre el filtrado paso alto:", src:"Diapositiva 6",
+  T:[["Sus coeficientes deben sumar 0.","«Los coeficientes deben sumar 0»."],
+     ["Roberts, Prewitt y Sobel son ejemplos de paso alto.","Son los tres ejemplos que muestra la lámina."],
+     ["Se usa para resaltar bordes, enfocar y detectar piezas.","La lámina: resaltar bordes, enfocar, detección de piezas, objetivos."],
+     ["Roberts es un gradiente cruzado.","Así lo nombra la lámina: «Roberts (gradiente cruzado)»."]],
+  F:[["Todos sus coeficientes son positivos y suman 1.","Eso es el paso bajo."],["Se usa principalmente para difuminar.","Difuminar es paso bajo."],["Sobel es un filtro de suavizado.","Sobel es paso alto: resalta bordes."]]},
+ {tema:"Filtros", stem:"Respecto del ruido «sal y pimienta»:", src:"Diapositiva 6",
+  T:[["Es un ruido impulsional.","La lámina lo presenta como «ruido impulsional»."],
+     ["El valor que toma el píxel no tiene relación con el valor ideal.","Es la definición de la lámina."],
+     ["El píxel toma el valor máximo (sal) o el mínimo (pimienta).","«Toma el valor máximo (sal) o el mínimo (pimienta)»."]],
+  F:[["La sal son los píxeles que toman el valor mínimo.","Sal es el máximo; pimienta, el mínimo."],["Cada píxel se aparta muy poco de su valor ideal.","Toma valores muy altos o muy bajos."]]},
+ {tema:"Frecuencia", stem:"Sobre el dominio de la frecuencia:", src:"Diapositiva 6 · Clase 5",
+  T:[["La mayor parte del procesamiento de imágenes se realiza en el dominio espacial.","«La mayor parte de procesamiento de imágenes se realiza en el dominio espacial»."],
+     ["Para llevar una imagen al dominio de la frecuencia se usa la Transformada Rápida de Fourier (FFT).","«Para convertir la imagen al dominio de la frecuencia se debe usar la FFT»."],
+     ["Alta frecuencia indica bordes muy marcados o muy detallados.","Texto de la lámina sobre alta frecuencia."],
+     ["Se mide en ciclos por píxel.","Es la unidad que aparece en la lámina: «ciclos / pixels»."],
+     ["Permite remover frecuencias no deseadas, como el ruido de un fotocopiado sucio.","Ejemplo de la lámina: se eliminan las «estrellas» y el ruido desaparece."]],
+  F:[["Alta frecuencia indica zonas planas, sin cambios.","Alta frecuencia indica bordes marcados o detallados."],["La mayor parte del procesamiento se realiza en el dominio de la frecuencia.","La mayor parte es en el dominio espacial."],["Quitar frecuencias nunca pierde información.","Siempre se pierde algo de detalle."]]},
+ {tema:"Morfología", stem:"Respecto de la morfología:", src:"Diapositiva 6",
+  T:[["La dilatación puede verse como reemplazar cada píxel blanco por una réplica del elemento estructurante.","Es la interpretación alternativa que da la lámina."],
+     ["La erosión elimina grupos de píxeles donde el elemento estructurante no cabe.","«Elimina grupos de píxeles donde el EE no cabe»."],
+     ["La apertura es una erosión seguida de una dilatación.","La lámina: apertura = (EROSIÓN) DILATACIÓN."],
+     ["El cierre es una dilatación seguida de una erosión.","La lámina: cierre = (DILATACIÓN) EROSIÓN."]],
+  F:[["La apertura es una dilatación seguida de una erosión.","Ese es el cierre; la apertura es erosión y después dilatación."],["La erosión agranda los objetos.","La erosión los achica; la dilatación los agranda."],["Apertura y cierre usan un elemento estructurante distinto en cada paso.","Usan el mismo elemento estructurante."]]},
+ {tema:"Morfología", stem:"Sobre los efectos de la apertura y el cierre:", src:"Diapositiva 6",
+  T:[["La apertura elimina protuberancias donde no cabe el elemento estructurante.","Es uno de los efectos de la apertura en la lámina."],
+     ["La apertura separa objetos en puntos estrechos.","Es uno de los efectos de la apertura en la lámina."],
+     ["El cierre rellena agujeros pequeños.","Es uno de los efectos del cierre en la lámina."],
+     ["El cierre conecta objetos vecinos.","Es uno de los efectos del cierre en la lámina."]],
+  F:[["La apertura rellena agujeros pequeños.","Eso lo hace el cierre."],["El cierre separa objetos en puntos estrechos.","Eso lo hace la apertura."]]},
+ {tema:"Sensores", stem:"Respecto de los sensores de las cámaras:", src:"Clase 2",
+  T:[["El CCD entrega una mejor imagen.","«El CCD hace una mejor imagen»."],
+     ["El CCD tiene un fotorreceptor para cada color en cada celda.","Un fotorreceptor para el rojo, otro para el verde y otro para el azul en cada cuadrícula."],
+     ["Las cámaras profesionales y réflex llevan mayoritariamente CCD.","«Las cámaras réflex, las profesionales, mayoritariamente van a tener un sensor CCD»."]],
+  F:[["El CMOS es el que tiene tres fotorreceptores por celda, uno por color.","Eso es del CCD."],["Las cámaras profesionales llevan mayoritariamente CMOS.","Llevan CCD."]]},
+ {tema:"Biología", stem:"Respecto de los sistemas visuales de animales vistos en clases:", src:"Diapositiva 1",
+  T:[["La libélula tiene unas 30.000 unidades visuales llamadas omatidios.","Cada omatidio tiene su propio lente y células fotosensibles."],
+     ["El camarón mantis tiene doce tipos de receptores de color; el humano, tres.","Dato de la lámina."],
+     ["El pez de cuatro ojos tiene la mitad superior del ojo adaptada al aire y la inferior al agua.","Ve por encima y por debajo de la línea de flotación; el lente cambia de grosor y curvatura."],
+     ["El geco tiene pupilas verticales que dejan entrar mayores cantidades de luz.","Dato de la lámina; por eso ve mucho mejor con poca luz."],
+     ["Cada ojo del camaleón puede moverse independientemente.","Dato de la lámina."]],
+  F:[["El camarón mantis tiene tres tipos de receptores de color, igual que el humano.","Tiene doce; el humano, tres."],["El pez de cuatro ojos tiene literalmente cuatro ojos.","Físicamente son dos ojos, divididos por una banda de tejido."],["Los ojos del tarsero giran libremente en sus órbitas.","Están fijos en el cráneo; por eso tiene un cuello sumamente flexible."],["La libélula tiene un solo lente para todos sus omatidios.","Cada omatidio tiene su propio lente y células fotosensibles."]]},
+ {tema:"Cámara y escena", stem:"Sobre la cámara y la configuración de escena:", src:"Clase 2",
+  T:[["El diafragma deja pasar más o menos luz.","«El diafragma va a dejar entrar más o menos luz»."],
+     ["El foco y la profundidad de campo son dos conceptos distintos.","«Un tema es el foco y el otro es la profundidad de campo»."],
+     ["El backlight o retroiluminación es como la luz para ver radiografías.","Así lo describió el profe."],
+     ["La iluminación es importante para el algoritmo.","«Siempre es importante para el algoritmo la iluminación»."]],
+  F:[["El diafragma define la resolución del sensor.","El diafragma regula cuánta luz entra."],["Foco y profundidad de campo son lo mismo.","Son dos conceptos distintos."],["La luz especular es la de un ambiente nublado.","Esa es la luz difusa; la especular es el reflejo de un rayo en un ángulo."]]},
+ {tema:"Definiciones", stem:"Sobre los problemas en visualística computacional:", src:"Diapositiva 1",
+  T:[["Un problema directo va de la escena a la imagen: escena, magnitud física, captura, imagen a escala.","Es la secuencia que muestra la lámina."],
+     ["Un problema indirecto es la extracción de información desde las imágenes.","«Problemas indirectos: extracción de información de las imágenes»."],
+     ["La imagenología es un ejemplo de problema directo.","La lámina la pone bajo los problemas directos."]],
+  F:[["Un problema directo es extraer información de una imagen.","Ese es el indirecto."],["Un problema indirecto es capturar una escena con una cámara.","Ese es el directo."]]},
+ {tema:"Color", stem:"Respecto del color:", src:"Diapositiva 6 · Clases 1 y 5",
+  T:[["El color es el resultado de lo que el objeto refleja, absorbe o emite de la luz que le llega.","Así lo definió el profe en la Clase 1."],
+     ["En imágenes en color se puede transformar por separado el histograma de cada componente.","«Pueden definirse transformaciones independientes del histograma de cada componente de color»."],
+     ["El blanco en RGB es (255, 255, 255).","Los tres canales al máximo."],
+     ["El pseudocolor asigna un color a cada intensidad de una imagen monocromática.","La lámina: intensidad → color."]],
+  F:[["El blanco en RGB es (0, 0, 0).","(0, 0, 0) es negro; el blanco es (255, 255, 255)."],["El pseudocolor convierte una imagen en color a escala de grises.","Es al revés: a cada intensidad le asigna un color."]]},
+ {tema:"Descripción", stem:"Sobre el procesamiento de imagen:", src:"Diapositiva 1 · Clase 1",
+  T:[["Son conceptos y métodos matemáticos del procesamiento digital de imágenes bidimensionales.","Es la descripción del curso en la lámina."],
+     ["Trabaja imágenes en color y en escala de grises.","Misma descripción: «en color y en escala de grises»."],
+     ["Busca representar, intervenir y modificar la información extraída de la realidad.","Definición de la Clase 1."],
+     ["Lena Söderberg es la imagen de prueba clásica de la disciplina.","«Toda historia parte con una mujer… Lena»."]],
+  F:[["Trabaja solo imágenes tridimensionales.","El curso trabaja imágenes bidimensionales."],["Trabaja solo imágenes en color.","Trabaja color y escala de grises."]]}
+];
+/* aplicaciones: una combinada por ingeniería, armada desde la lámina */
+ING.forEach(g => {
+  const others = [];
+  ING.forEach(o => { if (o !== g) o.apps.forEach(a => others.push([a.t, "Es de " + o.ing + "."])); });
+  AREAS.forEach(a => others.push([a.t, "Está en la lámina, pero como área aparte, no bajo una de las cinco ingenierías."]));
+  COMBO.push({tema:"Aplicaciones", stem:"Según la lámina de aplicaciones, corresponden a " + g.ing + ":", src:"Diapositivas 3 y 5",
+    T:g.apps.map(a => [a.t, "Está bajo " + g.ing + " en la lámina."]), F:others});
+});
+
+/* ---------- banco: preguntas simples ----------
+   why: por qué la correcta es correcta · steps: procedimiento · no: por qué cada distractor es incorrecto */
+const SIMPLE = [
+ {tema:"Convolución", q:"La norma de una máscara de suavizado 3×3 llena de unos es:", ok:"9", src:"Diapositiva 4",
+  steps:["La norma es la suma de todos los coeficientes de la máscara.","Una máscara 3×3 tiene 3 · 3 = 9 casillas, y todas valen 1.","Norma = 1+1+1+1+1+1+1+1+1 = 9."],
+  why:"Es la suma de los nueve coeficientes. La lámina lo anota como «NORMA = 9».",
+  bad:["1","0","3","27"], no:{"1":"1 es lo que suma la máscara ya normalizada (cada coeficiente dividido por 9), no la norma.","0":"Suman 0 los kernels de bordes (paso alto), no los de suavizado.","3":"3 es el lado de la máscara, no la suma de sus coeficientes.","27":"Sería contar 3 por casilla; cada coeficiente vale 1."}},
+ {tema:"Convolución", q:"La norma de una máscara de suavizado 5×5 llena de unos es:", ok:"25", src:"Diapositivas 4 y 5",
+  steps:["Una máscara 5×5 tiene 5 · 5 = 25 casillas.","Todas valen 1, así que la suma es 25."],
+  why:"Es la suma de los 25 coeficientes. La lámina lo anota como «NORMA = 25».",
+  bad:["5","10","9","0"], no:{"5":"5 es el lado de la máscara, no la suma.","10":"No sale de ninguna operación con esta máscara.","9":"9 es la norma de la máscara de 3×3.","0":"Suman 0 los kernels de bordes, no los de suavizado."}},
+ {tema:"Convolución", q:"Con la máscara de suavizado 3×3 de unos, si en el vecindario hay 6 píxeles en 255 y 3 en 0, el píxel central queda en:", ok:"170", src:"Diapositiva 4",
+  steps:["Multiplicar cada píxel por su coeficiente (todos valen 1) y sumar: 6 · 255 + 3 · 0 = 1530.","Calcular la norma: nueve unos, norma = 9.","Dividir: 1530 / 9 = 170.","170 está entre 0 y 255: no hace falta escalar."],
+  why:"Es el ejemplo de la lámina: «6·255 / 9 = 170».",
+  bad:["255","85","153","6"], no:{"255":"Sería si los 9 vecinos estuvieran en 255: 9·255/9.","85":"Sería con 3 píxeles en 255, no con 6.","153":"Es 1530/10: la norma es 9, no 10.","6":"Es solo la cantidad de píxeles blancos; faltó multiplicar y dividir."}},
+ {tema:"Convolución", q:"Con la máscara de suavizado 3×3 de unos, si en el vecindario hay 3 píxeles en 255 y 6 en 0, el píxel central queda en:", ok:"85", src:"Diapositiva 4",
+  steps:["Suma de productos: 3 · 255 + 6 · 0 = 765.","Norma de la máscara de nueve unos: 9.","Dividir: 765 / 9 = 85."],
+  why:"Es el ejemplo de la lámina: «3·255 / 9 = 85».",
+  bad:["170","255","28","3"], no:{"170":"Sería con 6 píxeles en 255.","255":"Sería con los 9 píxeles en 255.","28":"Es 255/9: faltó multiplicar por los 3 píxeles blancos.","3":"Es solo la cantidad de píxeles blancos."}},
+ {tema:"Convolución", q:"En el ejemplo de la lámina, la convolución del píxel central dio 530. ¿Qué problema plantea ese valor?", ok:"Es mayor que 255: no cabe en 8 bits y hay que ajustar los niveles de gris", src:"Diapositivas 4 y 5",
+  steps:["La lámina suma los productos de la máscara por el vecindario y obtiene 530.","Divide por la norma: (−1−1−1+0+1+0+1+1+1) = 1, así que 530 / 1 = 530.","En 8 bits el máximo es 255, y 530 lo supera.","Por eso hay que ajustar los niveles de gris; la diapositiva 5 lo hace llevando el mayor valor a 255."],
+  why:"La lámina deja planteado «¿530 es mayor que 255?» y lo resuelve con el ajuste de niveles de gris de la diapositiva 5.",
+  bad:["Es negativo y hay que cambiarle el signo","Indica que la máscara usada era par","No hay problema: 530 es un nivel de gris válido","Indica que la norma de la máscara es cero"],
+  no:{"Es negativo y hay que cambiarle el signo":"530 es positivo; el problema es que es demasiado grande.","Indica que la máscara usada era par":"La máscara es 3×3: impar.","No hay problema: 530 es un nivel de gris válido":"En 8 bits los niveles van de 0 a 255.","Indica que la norma de la máscara es cero":"En el ejemplo la norma da 1, no 0."}},
+ {tema:"Imagen", q:"¿Qué es un píxel?", ok:"Cada elemento de la grilla (matriz) que forma la imagen", src:"Diapositiva 3",
+  why:"La imagen se representa como una grilla de M filas por N columnas, y «cada elemento de la grilla es un PIXEL».",
+  bad:["La cantidad de bits que tiene cada color","Un tipo de sensor de la cámara","La unidad en que se mide la frecuencia","Una máscara de convolución de 1×1"],
+  no:{"La cantidad de bits que tiene cada color":"Eso es la profundidad de la imagen.","Un tipo de sensor de la cámara":"Los sensores vistos son CCD y CMOS.","La unidad en que se mide la frecuencia":"La frecuencia se mide en ciclos por píxel.","Una máscara de convolución de 1×1":"La máscara recorre la imagen; el píxel es un elemento de la imagen."}},
+ {tema:"Imagen", q:"¿Cuántos niveles de gris tiene una imagen de 5 bits?", ok:"32", src:"Diapositiva 3",
+  steps:["La cantidad de niveles es 2 elevado al número de bits.","2⁵ = 2 · 2 · 2 · 2 · 2 = 32."],
+  why:"La lámina lo muestra: «5-bits, 32 niveles de gris».",
+  bad:["5","16","25","64"], no:{"5":"Es el número de bits, no de niveles.","16":"Son 4 bits: 2⁴ = 16.","25":"Es 5² = 25; la cuenta es 2⁵.","64":"Son 6 bits: 2⁶ = 64."}},
+ {tema:"Imagen", q:"En la escala de 8 bits, el valor 0 corresponde a:", ok:"Negro", src:"Diapositiva 3",
+  why:"La lámina: «0 = NEGRO, 255 = BLANCO».",
+  bad:["Blanco","Gris medio","Rojo","Ausencia de imagen"], no:{"Blanco":"Blanco es 255.","Gris medio":"El gris medio está a la mitad del rango, cerca de 128.","Rojo":"En escala de grises no hay color.","Ausencia de imagen":"0 es un nivel de gris válido: el negro."}},
+ {tema:"Histograma", q:"La intensidad, en ocho bits por tono, se cuantifica de:", ok:"0 a 255", src:"Diapositiva 4 · Clase 3",
+  steps:["8 bits dan 2⁸ = 256 valores posibles.","Como el cero cuenta como un valor, van del 0 al 255."],
+  why:"«La intensidad es lo que se cuantifica de 0 a 255 en ocho bits por tono».",
+  bad:["0 a 256","1 a 255","0 a 100","1 a 256"], no:{"0 a 256":"Serían 257 valores, uno más de los que caben en 8 bits.","1 a 255":"Serían 255 valores: falta el 0, que es el negro.","0 a 100":"Eso sería un porcentaje, no 8 bits.","1 a 256":"El cero cuenta: la escala parte en 0."}},
+ {tema:"Histograma", q:"Si a todos los píxeles de una imagen se les suma 127 (aclarar), el histograma:", ok:"Se desplaza hacia el 255", src:"Diapositiva 4",
+  steps:["Sumar 127 sube la intensidad de todos los píxeles por igual.","Cada barra del histograma se corre 127 posiciones hacia la derecha, hacia el blanco."],
+  why:"Es el ejemplo «Aclarar 127» de la lámina.",
+  bad:["Se desplaza hacia el 0","Se invierte","Queda igual","Queda reducido a dos barras"], no:{"Se desplaza hacia el 0":"Eso pasa al oscurecer (restar).","Se invierte":"Eso pasa con el negativo.","Queda igual":"Cambian todas las intensidades.","Queda reducido a dos barras":"Eso pasa con el umbralado."}},
+ {tema:"Histograma", q:"La modificación del histograma que deja la imagen solo en blanco y negro es:", ok:"El umbralado (binarización)", src:"Diapositiva 4",
+  why:"«Binarización: solo colores blanco y negro». Cada píxel queda en 0 o en 255 según si supera el umbral.",
+  bad:["El negativo","El aclarado","El aumento de contraste","El suavizado"], no:{"El negativo":"Invierte las intensidades, pero conserva todos los niveles.","El aclarado":"Solo desplaza el histograma hacia el blanco.","El aumento de contraste":"Reparte más las intensidades; no deja dos valores.","El suavizado":"Es un filtro de convolución que difumina; no binariza."}},
+ {tema:"Biología", q:"Los sistemas perceptivos biológicos se presentan en clases con tres conceptos:", ok:"Adaptación, evolución y diferenciación", src:"Diapositiva 1",
+  why:"Es lo que dice la lámina de Biología: «Sistemas perceptivos biológicos: adaptación, evolución, diferenciación».",
+  bad:["Subjetividad, selección y organización","Reflexión, refracción y absorción","Fuente, medio y sensor","Intensidad, contraste y umbral"],
+  no:{"Subjetividad, selección y organización":"Son los conceptos de la tarea de percepción, no de biología.","Reflexión, refracción y absorción":"Son interacciones de la luz con la materia.","Fuente, medio y sensor":"Son etapas de la cadena radiométrica.","Intensidad, contraste y umbral":"Son conceptos del histograma."}},
+ {tema:"Biología", q:"¿Qué animal tiene unas 30.000 unidades visuales, cada una con su propio lente?", ok:"La libélula", src:"Diapositiva 1",
+  why:"La libélula tiene 30.000 omatidios, cada uno con su lente y sus células fotosensibles.",
+  bad:["El geco","El tarsero","El camaleón","El camarón mantis"], no:{"El geco":"El geco destaca por sus pupilas verticales y su visión con poca luz.","El tarsero":"El tarsero destaca por sus ojos enormes y fijos.","El camaleón":"El camaleón destaca por mover cada ojo de forma independiente.","El camarón mantis":"El camarón mantis destaca por sus doce receptores de color."}},
+ {tema:"Biología", q:"¿Qué animal tiene los ojos fijos en el cráneo, más pesados que su cerebro, y lo compensa con un cuello sumamente flexible?", ok:"El tarsero", src:"Diapositiva 1",
+  why:"La lámina del tarsero: ojos enormes, fijos en el cráneo, que no pueden girar en sus órbitas.",
+  bad:["El geco","La libélula","El pez de cuatro ojos","El camaleón"], no:{"El geco":"El geco destaca por sus pupilas verticales.","La libélula":"La libélula destaca por sus 30.000 omatidios.","El pez de cuatro ojos":"Destaca por tener el ojo dividido para el aire y el agua.","El camaleón":"Sus ojos se mueven de forma independiente: no están fijos."}},
+ {tema:"Biología", q:"El camarón mantis puede ver:", ok:"Luz ultravioleta, luz infrarroja y luz polarizada", src:"Diapositiva 1",
+  why:"Dato de la lámina, junto con sus doce tipos de receptores de color.",
+  bad:["Solo luz visible","Solo luz ultravioleta","Solo luz infrarroja","Rayos X"], no:{"Solo luz visible":"Ve más allá del visible.","Solo luz ultravioleta":"También ve infrarroja y polarizada.","Solo luz infrarroja":"También ve ultravioleta y polarizada.","Rayos X":"No aparece en la lámina."}},
+ {tema:"Biología", q:"Según la lámina, con poca luz el geco ve aproximadamente:", ok:"350 veces mejor", src:"Diapositiva 1",
+  why:"«Ver trescientas cincuenta veces mejor con poca luz».",
+  bad:["30 veces mejor","3.000 veces mejor","12 veces mejor","Igual que el humano"], no:{"30 veces mejor":"La lámina dice 350.","3.000 veces mejor":"La lámina dice 350.","12 veces mejor":"12 son los tipos de receptores de color del camarón mantis.","Igual que el humano":"La lámina destaca que ve mucho mejor que nosotros con poca luz."}},
+ {tema:"Definiciones", q:"«Luz», del latín lux, lucis, es:", ok:"La parte de la radiación electromagnética que puede percibir el ojo humano", src:"Diapositiva 1",
+  why:"Es la definición de la lámina. En física el término se amplía a todo el espectro; «luz visible» es la que ve el ojo.",
+  bad:["Toda la energía que emite una fuente","El color que refleja un objeto","Una onda que necesita aire para propagarse","La energía que absorbe un cuerpo negro"],
+  no:{"Toda la energía que emite una fuente":"Incluye radiación que el ojo no ve.","El color que refleja un objeto":"Eso es el color, no la luz.","Una onda que necesita aire para propagarse":"No es la definición de la lámina.","La energía que absorbe un cuerpo negro":"Eso describe al cuerpo negro."}},
+ {tema:"Definiciones", q:"La palabra «imagen» proviene del latín:", ok:"Imago (retrato), del verbo imitari", src:"Diapositiva 1",
+  why:"La lámina: «Del latín imago (retrato) = verbo imitari»: imitación de la realidad según nuestra percepción.",
+  bad:["Lux, lucis","Pictura, del verbo pingere","Visio, del verbo videre","Forma, del verbo formare"],
+  no:{"Lux, lucis":"Es el origen de la palabra «luz».","Pictura, del verbo pingere":"No es lo que dice la lámina.","Visio, del verbo videre":"No es lo que dice la lámina.","Forma, del verbo formare":"No es lo que dice la lámina."}},
+ {tema:"Luz y espectro", q:"Cuando la luz blanca pasa por un prisma:", ok:"Se descompone en una gama de colores", src:"Clase 1",
+  why:"El profe lo explicó como la descomposición de la luz en sus frecuencias, y lo relacionó con la transformada de Fourier.",
+  bad:["Se vuelve de un solo color","Se absorbe completamente","Se refleja sin cambios","Se convierte en infrarrojo"],
+  no:{"Se vuelve de un solo color":"Al revés: muestra todos los colores que trae.","Se absorbe completamente":"Eso haría un cuerpo negro.","Se refleja sin cambios":"Eso haría un espejo.","Se convierte en infrarrojo":"No cambia de radiación: se separa en colores."}},
+ {tema:"Cámara y escena", q:"En la cámara oscura, la imagen del exterior se proyecta:", ok:"Invertida", src:"Clase 1",
+  why:"Es la historia de la carpa y el camello: la imagen entra por el agujero y se proyecta invertida dentro.",
+  bad:["Ampliada al doble","Con los colores invertidos","Sin ningún cambio","Solo en escala de grises"],
+  no:{"Ampliada al doble":"No es lo que contó el profe.","Con los colores invertidos":"Se invierte la imagen, no los colores.","Sin ningún cambio":"El profe insistió en que se ve invertida.","Solo en escala de grises":"Se proyecta con la luz tal como llega."}},
+ {tema:"Cámara y escena", q:"¿Qué tipo de iluminación es como la luz que se usa para ver radiografías?", ok:"Backlight (retroiluminación)", src:"Clase 2",
+  why:"«Backlight o retroiluminación, que es la luz que está para ver las radiografías».",
+  bad:["Campo oscuro","Domo de difusión","Luz especular","Difusión axial"],
+  no:{"Campo oscuro":"El ejemplo del profe fue el estadio con sombras tenues.","Domo de difusión":"Ilumina con un domo para ver más detalle.","Luz especular":"Es el reflejo de un rayo en un ángulo.","Difusión axial":"Es otra iluminación nombrada en clases, no la de las radiografías."}},
+ {tema:"Frecuencia", q:"¿Qué transformada se usa para llevar una imagen al dominio de la frecuencia?", ok:"La Transformada Rápida de Fourier (FFT)", src:"Diapositiva 6",
+  why:"«Para convertir la imagen al dominio de la frecuencia se debe usar la Transformada Rápida de Fourier (FFT)».",
+  bad:["La transformada de Hough","La convolución","El histograma","El umbralado"],
+  no:{"La transformada de Hough":"Detecta líneas y círculos; es materia de la Solemne 2.","La convolución":"Trabaja en el dominio espacial.","El histograma":"Cuenta píxeles por intensidad.","El umbralado":"Binariza la imagen."}},
+ {tema:"Frecuencia", q:"En el ejemplo del fotocopiado sucio, ¿cómo se quita el ruido?", ok:"Eliminando las «estrellas» en el dominio de la frecuencia", src:"Diapositiva 6",
+  steps:["Se lleva la imagen al dominio de la frecuencia.","El ruido repetitivo aparece como puntos brillantes: las «estrellas».","Se eliminan esas estrellas.","Al volver al dominio espacial, esos focos de ruido desaparecen."],
+  why:"Es la secuencia (a)–(d) de la lámina.",
+  bad:["Con una dilatación","Aumentando el contraste","Con un umbral global","Aplicando el negativo"],
+  no:{"Con una dilatación":"Es morfología en el dominio espacial; no quita un patrón repetitivo.","Aumentando el contraste":"Resaltaría el ruido, no lo quitaría.","Con un umbral global":"Binariza la imagen; el patrón sigue ahí.","Aplicando el negativo":"Solo invierte las intensidades."}},
+ {tema:"Morfología", q:"En el ejemplo de texto escaneado (OCR), ¿qué mantiene el ancho de línea y recupera algunos enlaces perdidos?", ok:"El cierre (dilatación + erosión)", src:"Diapositiva 6",
+  steps:["La dilatación enlaza componentes desconectadas, pero engruesa las letras.","La erosión siguiente devuelve el grosor original.","Dilatación + erosión = cierre: queda el ancho de línea y se recuperan enlaces."],
+  why:"La lámina: «Dilatación + Erosión = Cierre: mantiene la anchura de línea y recupera algunos enlaces perdidos».",
+  bad:["Una dilatación sola","Una erosión sola","La apertura","El negativo"],
+  no:{"Una dilatación sola":"Enlaza, pero engruesa las líneas y puede unir caracteres.","Una erosión sola":"Adelgaza y puede cortar más enlaces.","La apertura":"Empieza erosionando: separa en vez de unir.","El negativo":"No es una operación morfológica."}},
+ {tema:"Morfología", q:"En el ejemplo de OCR, el riesgo de aplicar solo dilatación es:", ok:"Enlazar caracteres incorrectamente", src:"Diapositiva 6",
+  why:"La lámina: la dilatación permite enlazar componentes desconectadas; «riesgos: enlazar caracteres incorrectamente».",
+  bad:["Borrar los caracteres","Invertir los colores","Separar las letras","Perder el color del texto"],
+  no:{"Borrar los caracteres":"Eso podría hacer la erosión, no la dilatación.","Invertir los colores":"Eso es el negativo.","Separar las letras":"La dilatación une, no separa.","Perder el color del texto":"El ejemplo es una imagen binaria."}},
+ {tema:"Filtros", q:"En el ruido impulsional, el píxel que toma el valor máximo se llama:", ok:"Sal", src:"Diapositiva 6",
+  why:"«Toma el valor máximo (sal) o el mínimo (pimienta)».",
+  bad:["Pimienta","Ruido gaussiano","Ruido de fondo","Contraste"], no:{"Pimienta":"Pimienta es el valor mínimo.","Ruido gaussiano":"No es impulsional: no salta a los extremos.","Ruido de fondo":"No es el nombre que usa la lámina.","Contraste":"Es una propiedad del histograma, no un ruido."}},
+ {tema:"Cuerpos", q:"¿Qué puede hacer la materia con un rayo incidente?", opts:["Absorberlo","Transmitirlo","Emitir energía","Reflejarlo","Todas las anteriores"], c:4, src:"Clase 2",
+  why:"Las cuatro son correctas: la materia puede absorber, transmitir, emitir y reflejar. El profe pidió anotarla como pregunta de prueba.",
+  no:{"Absorberlo":"Es correcta, pero incompleta: también puede transmitir, emitir y reflejar.","Transmitirlo":"Es correcta, pero incompleta: también puede absorber, emitir y reflejar.","Emitir energía":"Es correcta, pero incompleta: también puede absorber, transmitir y reflejar.","Reflejarlo":"Es correcta, pero incompleta: también puede absorber, transmitir y emitir."}},
+ {tema:"Percepción", q:"¿Cuáles son las características de la percepción?", opts:["Subjetiva","Selectiva","Temporal","Todas las anteriores","Ninguna de las anteriores"], c:3, src:"Diapositiva 1",
+  why:"Las tres son características de la percepción en la lámina: subjetiva, selectiva y temporal.",
+  no:{"Subjetiva":"Es correcta, pero incompleta: también es selectiva y temporal.","Selectiva":"Es correcta, pero incompleta: también es subjetiva y temporal.","Temporal":"Es correcta, pero incompleta: también es subjetiva y selectiva.","Ninguna de las anteriores":"Las tres son características de la percepción."}}
+];
+
+/* ---------- construir preguntas ---------- */
+const L = ["a","b","c","d","e"];
+const PAIRS = ["ab","ac","bc"];
+const pairTxt = p => "Solo " + p[0] + " y " + p[1];
+function buildCombo(c, r){
+  const ks = [0,1,2,3].filter(k => k <= c.T.length && 3-k <= c.F.length);
+  const W = {0:1,1:4,2:4,3:2}; let tot = ks.reduce((s,k) => s+W[k], 0), x = r()*tot, k = ks[0];
+  for (const kk of ks){ x -= W[kk]; if (x < 0){ k = kk; break; } }
+  const items = shuf(shuf(c.T, r).slice(0,k).map(t => ({t:t[0], ok:true, why:t[1]})).concat(shuf(c.F, r).slice(0,3-k).map(f => ({t:f[0], ok:false, fix:f[1]}))), r);
+  const S = items.map((it,i) => it.ok ? L[i] : null).filter(Boolean).join("");
+  let right, other;
+  if (k === 3){ right = "todas"; other = pick(PAIRS, r); }
+  else if (k === 0){ right = "ninguna"; other = r() < .5 ? "todas" : pick(PAIRS, r); }
+  else if (k === 2){ right = S; other = r() < .45 ? "todas" : pick(PAIRS.filter(p => p !== S), r); }
+  else { const cand = PAIRS.filter(p => p.indexOf(S) >= 0).concat(["todas"]); const two = shuf(cand, r).slice(0,2); right = S; other = two; }
+  const order = ["ab","ac","bc","todas","ninguna"];
+  let de = Array.isArray(other) ? other : [right, other];
+  de = de.sort((p,q) => order.indexOf(p) - order.indexOf(q));
+  const lab = v => v === "todas" ? "Todas son correctas" : v === "ninguna" ? "Ninguna es correcta" : pairTxt(v);
+  const opts = items.map(it => it.t).concat(de.map(lab));
+  const correct = k === 1 ? L.indexOf(S) : 3 + de.indexOf(right);
+  return {tema:c.tema, q:c.stem, opts:opts, c:correct, src:c.src, items:items, combo:true};
+}
+function buildSimple(s, r){
+  const extra = {why:s.why, src:s.src, no:s.no || {}, steps:s.steps || null};
+  if (s.opts) return Object.assign({tema:s.tema, q:s.q, opts:s.opts.slice(), c:s.c}, extra);
+  const o = shuf([s.ok].concat(shuf(s.bad, r).slice(0,4)), r);
+  return Object.assign({tema:s.tema, q:s.q, opts:o, c:o.indexOf(s.ok)}, extra);
+}
+function buildExam(code){
+  const n = parseInt(code, 10) || 20, r = rngFrom(hashStr(code));
+  const pool = shuf(COMBO.map(c => ({k:"c", d:c})).concat(SIMPLE.map(s => ({k:"s", d:s}))), r);
+  const per = {}, out = [];
+  const cap = t => t === "Aplicaciones" ? 1 : 2;
+  for (const p of pool){ if (out.length >= n) break; const t = p.d.tema; if ((per[t]||0) >= cap(t)) continue; per[t] = (per[t]||0)+1; out.push(p); }
+  for (const p of pool){ if (out.length >= n) break; if (out.indexOf(p) < 0) out.push(p); }
+  return out.map(p => p.k === "c" ? buildCombo(p.d, r) : buildSimple(p.d, r));
+}
+
+/* ---------- estado ---------- */
+let S = null, tick = null, Q = [];
+const KEY = "s1-en-curso", HIST = "s1-historial";
+function today(){ const d = new Date(); return d.toLocaleDateString("es-CL"); }
+$("fecha").value = today();
+$("nombre").value = store.get("s1-nombre", "");
+$("nombre").addEventListener("change", () => store.set("s1-nombre", $("nombre").value));
+
+function drawHist(){
+  const hs = store.get(HIST, []), box = $("hist-box");
+  if (!hs.length){ box.replaceChildren(); return; }
+  const best = hs.reduce((a,b) => (b.pct > a.pct ? b : a), hs[0]);
+  box.replaceChildren(
+    h("p",{class:"note", html:"<strong>Récord:</strong> " + fmt(best.nota,1) + " (" + best.pts + " de " + best.max + ", forma " + best.code + ") · intentos: " + hs.length}),
+    h("div",{class:"scroll"}, h("table",{class:"hist"}, h("tr",null, ["Fecha","Forma","Puntaje","Nota","Tiempo"].map(t => h("th",{text:t}))),
+      hs.slice(-8).reverse().map(x => h("tr",null, h("td",{text:x.fecha}), h("td",{text:x.code}), h("td",{text:x.pts + " / " + x.max}), h("td",{text:fmt(x.nota,1)}), h("td",{text:x.min + " min"}))))));
+}
+function checkResume(){ const s = store.get(KEY, null); $("btn-resume").hidden = !(s && !s.done); }
+drawHist(); checkResume();
+
+function start(code, minutes, resume){
+  code = code.toUpperCase();
+  if (!/^(15|20|25)-[A-Z0-9]{4}$/.test(code)){ $("cfg-msg").textContent = "El código tiene la forma 20-K7QM: cantidad de preguntas, guion y cuatro caracteres."; return; }
+  S = resume || {code:code, min:minutes, t0:Date.now(), ans:{}, dev:[["",""],["",""],["",""],["",""],["",""]], done:false};
+  store.set(KEY, S);
+  Q = buildExam(S.code);
+  $("forma").value = S.code; $("setup").hidden = true; $("exam").hidden = false;
+  $("hd-pts").textContent = "— / " + (Q.length + 5); $("hd-nota").textContent = "—";
+  render(); window.scrollTo(0,0);
+  if (tick) clearInterval(tick);
+  tick = setInterval(updBar, 1000); updBar();
+}
+$("btn-new").addEventListener("click", () => start(newCode($("cfg-n").value), +$("cfg-t").value));
+$("btn-code").addEventListener("click", () => start($("cfg-code").value.trim(), +$("cfg-t").value));
+$("btn-resume").addEventListener("click", () => { const s = store.get(KEY, null); if (s) start(s.code, s.min, s); });
+
+function updBar(){
+  if (!S) return;
+  const answered = Object.keys(S.ans).length, devFilled = S.dev.filter(d => d[0].trim() || d[1].trim()).length;
+  $("bar-prog").textContent = "Respondidas " + answered + " de " + Q.length + " · desarrollo " + devFilled + " de 5";
+  const c = $("bar-clock");
+  if (S.done){ c.textContent = "Entregada"; c.classList.remove("low"); return; }
+  if (!S.min){ const el = Math.floor((Date.now()-S.t0)/1000); c.textContent = Math.floor(el/60) + ":" + String(el%60).padStart(2,"0"); return; }
+  const left = Math.max(0, Math.round((S.t0 + S.min*60000 - Date.now())/1000));
+  c.textContent = Math.floor(left/60) + ":" + String(left%60).padStart(2,"0");
+  c.classList.toggle("low", left <= 120);
+  if (left <= 0) submit();
+}
+
+function render(){
+  const p1 = $("p1"); p1.replaceChildren();
+  Q.forEach((q,i) => {
+    const name = "q" + i;
+    const ol = h("ul",{class:"opts"}, q.opts.map((o,j) => h("li",null, h("label",{id:name+"-l"+j},
+      h("input",{type:"radio", name:name, value:String(j), checked: S.ans[i] === j ? true : null, onchange:() => { S.ans[i] = j; store.set(KEY, S); updBar(); }}),
+      h("span",{class:"l", text:L[j]}), h("span",{text:o})))));
+    p1.appendChild(h("div",{class:"q", id:"qq"+i}, h("div",{class:"qh"}, h("span",{class:"n",text:(i+1)+"."}), h("span",{text:q.q}), h("span",{class:"tag",text:"1 pt"})), ol, h("div",{id:name+"-fb"})));
+  });
+  $("p1-pts").textContent = Q.length + " puntos";
+  $("dev-n").textContent = (Q.length+1) + ".";
+  const dev = $("dev"); dev.replaceChildren();
+  S.dev.forEach((d,i) => {
+    const a = h("input",{type:"text", id:"dv-i"+i, placeholder:"Ingeniería", value:d[0], autocomplete:"off"});
+    const b = h("input",{type:"text", id:"dv-a"+i, placeholder:"Área y aplicación", value:d[1], autocomplete:"off"});
+    const sync = () => { S.dev[i] = [a.value, b.value]; store.set(KEY, S); updBar(); };
+    a.addEventListener("input", sync); b.addEventListener("input", sync);
+    dev.appendChild(h("div",{class:"devrow"}, h("span",{text:String.fromCharCode(97+i)+")"}), a, b, h("div",{class:"devres", id:"dv-r"+i, hidden:true})));
+  });
+  $("dev-key").replaceChildren(); $("result-top").replaceChildren();
+  $("btn-send").disabled = false; $("btn-send2").disabled = false;
+}
+
+/* ---------- explicación paso a paso de cada pregunta ---------- */
+function list(xs){ return xs.length <= 1 ? (xs[0] || "") : xs.slice(0,-1).join(", ") + " y " + xs[xs.length-1]; }
+const es = (xs, sg, pl) => xs.length > 1 ? pl : sg;
+function comboReason(q, j, S, F){
+  const o = q.opts[j];
+  if (j < 3){
+    if (!q.items[j].ok) return "La afirmación " + L[j] + " es falsa, así que no puede ser la respuesta.";
+    if (S.length === 1) return "Es la única afirmación verdadera.";
+    const rest = S.filter(x => x !== L[j]);
+    return "Es verdadera, pero incompleta: también " + es(rest, "es verdadera ", "son verdaderas ") + list(rest) + ".";
+  }
+  if (o === "Todas son correctas") return S.length === 3 ? "Las tres afirmaciones son verdaderas." : "No todas: " + list(F) + " " + es(F, "es falsa.", "son falsas.");
+  if (o === "Ninguna es correcta") return S.length === 0 ? "Ninguna de las tres es verdadera." : "Sí hay verdaderas: " + list(S) + ".";
+  const m = o.match(/^Solo (\w) y (\w)$/), pair = [m[1], m[2]];
+  const bad = pair.filter(x => F.indexOf(x) >= 0), left = S.filter(x => pair.indexOf(x) < 0);
+  if (!bad.length && !left.length) return "Nombra exactamente las verdaderas, ni más ni menos.";
+  const r = [];
+  if (bad.length) r.push("incluye " + list(bad) + ", que " + es(bad, "es falsa", "son falsas"));
+  if (left.length) r.push("deja fuera " + list(left) + ", que también " + es(left, "es verdadera", "son verdaderas"));
+  return r.join(" y ").replace(/^./, c => c.toUpperCase()) + ".";
+}
+function optLine(q, j, a, reason){
+  const tags = [];
+  if (j === q.c) tags.push(h("span",{class:"tg ok",text:"correcta"}));
+  if (j === a && j !== q.c) tags.push(h("span",{class:"tg mine",text:"tu respuesta"}));
+  return h("li",{class: j === q.c ? "is-ok" : (j === a ? "is-mine" : "")},
+    h("span",{class:"lt",text:L[j] + ")"}), h("div",null, h("div",{class:"ot",text:q.opts[j]}), h("div",{class:"why"}, tags, reason)));
+}
+function explain(q, a){
+  const good = a === q.c, parts = [];
+  parts.push(h("p",{class:"verd"}, h("strong",{text: good ? "Correcta." : (a == null ? "Sin responder." : "Incorrecta.")}),
+    " " + (a != null && !good ? "Marcaste " + L[a] + "). " : "") + "La respuesta es " + L[q.c] + ")."));
+  if (q.combo){
+    const S = q.items.map((it,j) => it.ok ? L[j] : null).filter(Boolean), F = q.items.map((it,j) => it.ok ? null : L[j]).filter(Boolean);
+    parts.push(h("h5",{text:"Paso 1 · Decide si cada afirmación es verdadera o falsa"}),
+      h("ul",{class:"steps"}, q.items.map((it,j) => h("li",null, h("span",{class:"lt",text:L[j] + ")"}),
+        h("div",null, h("span",{class:"tg " + (it.ok ? "ok" : "bad"), text: it.ok ? "verdadera" : "falsa"}), it.ok ? it.why : "Lo correcto: " + it.fix)))));
+    parts.push(h("h5",{text:"Paso 2 · Junta las verdaderas"}),
+      h("p",{text: S.length === 0 ? "Ninguna de las tres es verdadera." : S.length === 3 ? "Las tres son verdaderas: a, b y c." : "Verdaderas: " + list(S) + ". " + es(F, "Falsa: ", "Falsas: ") + list(F) + "."}));
+    parts.push(h("h5",{text:"Paso 3 · Busca la alternativa que dice exactamente eso"}),
+      h("ul",{class:"optx"}, q.opts.map((o,j) => optLine(q, j, a, comboReason(q, j, S, F)))));
+  } else {
+    if (q.steps) parts.push(h("h5",{text:"Procedimiento"}), h("ol",{class:"proc"}, q.steps.map(s => h("li",{text:s}))));
+    parts.push(h("h5",{text:"Por qué la respuesta es " + L[q.c] + ")"}), h("p",{text:q.why}));
+    parts.push(h("h5",{text:"Cada alternativa"}),
+      h("ul",{class:"optx"}, q.opts.map((o,j) => optLine(q, j, a, j === q.c ? "Es la correcta." : (q.no[o] || "No coincide con lo visto en clases.")))));
+  }
+  parts.push(h("div",{class:"src",text:"Fuente: " + q.src}));
+  return h("div",{class:"fb" + (good ? "" : " bad")}, parts);
+}
+
+/* ---------- corrección ---------- */
+function gradeDev(){
+  const used = {};
+  return S.dev.map(d => {
+    const ing = detectIng(d[0]), app = detectApp(d[1]), blank = !d[0].trim() && !d[1].trim();
+    const wI = d[0].trim(), wA = d[1].trim(), steps = [];
+    steps.push(!wI ? ["–", "Ingeniería: en blanco."]
+      : ing ? ["ok", "Ingeniería: «" + wI + "» corresponde a " + ingName(ing) + ", que está en la lámina."]
+      : ["bad", "Ingeniería: «" + wI + "» no está entre las cinco de la lámina (Civil Industrial, Industrial, Logística y Transporte, Automatización y Robótica, Seguridad y Prevención de Riesgos)."]);
+    if (ing && used[ing]) steps.push(["bad", "Ya usaste " + ingName(ing) + " en otra respuesta: repetirla no suma."]);
+    steps.push(!wA ? ["–", "Aplicación: en blanco."]
+      : app ? ["ok", "Aplicación: «" + wA + "» corresponde a «" + app.t + "», que está en la lámina."]
+      : ["bad", "Aplicación: «" + wA + "» no aparece en la lámina."]);
+    if (ing && app && !used[ing]) steps.push(app.ing === ing ? ["ok", "En la lámina, esa aplicación está bajo " + ingName(ing) + "."]
+      : app.ing ? ["bad", "En la lámina, esa aplicación está bajo " + ingName(app.ing) + ", no bajo " + ingName(ing) + "."]
+      : ["bad", "En la lámina, esa aplicación es un área aparte, no está bajo una de las cinco ingenierías."]);
+    let pts, why;
+    if (blank){ pts = 0; why = "En blanco."; }
+    else if (!d[0].trim()){ pts = 0; why = "Falta la ingeniería."; }
+    else if (!ing){ pts = -1; why = "Esa ingeniería no está en la lámina de aplicaciones."; }
+    else if (used[ing]){ pts = 0; why = ingName(ing) + " ya estaba en otra respuesta."; }
+    else if (!d[1].trim()){ pts = 0; why = "Falta el área de aplicación."; used[ing] = true; }
+    else if (!app){ pts = -1; why = "Esa aplicación no está en la lámina: cuenta como inventada."; used[ing] = true; }
+    else if (app.ing === ing){ pts = 1; why = "«" + app.t + "»" + (app.extra ? " (está en la diapositiva 3, aunque no en la pauta)." : "."); used[ing] = true; }
+    else if (app.ing){ pts = 0; why = "«" + app.t + "» es de " + ingName(app.ing) + ", no de " + ingName(ing) + "."; used[ing] = true; }
+    else { pts = 0; why = "«" + app.t + "» está en la lámina, pero no bajo una de las cinco ingenierías."; used[ing] = true; }
+    return {pts:pts, auto:pts, why:why, ing:ing, steps:steps};
+  });
+}
+function nota(p){ return p >= .6 ? 4 + 3*(p-.6)/.4 : 1 + 3*p/.6; }
+
+function submit(){
+  if (!S || S.done) return;
+  S.done = true; store.set(KEY, S); clearInterval(tick); updBar();
+  $("btn-send").disabled = true; $("btn-send2").disabled = true;
+  const byT = {}; let ok1 = 0;
+  Q.forEach((q,i) => {
+    const a = S.ans[i], good = a === q.c; if (good) ok1++;
+    byT[q.tema] = byT[q.tema] || [0,0]; byT[q.tema][1]++; if (good) byT[q.tema][0]++;
+    document.getElementsByName("q"+i).forEach(r => r.disabled = true);
+    $("q"+i+"-l"+q.c).classList.add("right");
+    if (a != null && !good) $("q"+i+"-l"+a).classList.add("miss");
+    $("qq"+i).classList.add(good ? "is-right" : "is-wrong");
+    $("q"+i+"-fb").replaceChildren(explain(q, a));
+  });
+  const dv = gradeDev();
+  dv.forEach((g,i) => {
+    const box = $("dv-r"+i); box.hidden = false;
+    $("dv-i"+i).disabled = true; $("dv-a"+i).disabled = true;
+    const sel = h("select",{id:"dv-s"+i, "aria-label":"Corregir puntaje de la respuesta " + (i+1)}, [["1","+1 correcta"],["0","0"],["-1","−1 inventada"]].map(o => h("option",{value:o[0], text:o[1], selected: String(g.pts) === o[0] ? true : null})));
+    const res = h("strong");
+    const showPts = () => { res.textContent = (g.pts > 0 ? "+1 punto. " : g.pts < 0 ? "−1 punto. " : "0 puntos. "); };
+    sel.addEventListener("change", () => { g.pts = +sel.value; showPts(); paintDev(box, g); summary(); });
+    box.replaceChildren(
+      h("ol",{class:"devsteps"}, g.steps.map(s => h("li",{class:"st-" + (s[0] === "ok" ? "ok" : s[0] === "bad" ? "bad" : "na")}, s[1]))),
+      h("div",{class:"devline"}, h("span",null, res, g.why), h("label",null, "Corregir: ", sel)));
+    showPts(); paintDev(box, g);
+  });
+  $("dev-key").replaceChildren(h("div",{class:"key"},
+    h("p",{class:"note",style:"margin:0 0 8px",text:"Pauta: las cinco ingenierías de la lámina, con sus aplicaciones literales."}),
+    ING.map(g => [h("h4",{text:g.ing}), h("ul",null, g.apps.map(a => h("li",{text:a.t})))]),
+    h("h4",{text:"En la lámina, fuera de las cinco ingenierías"}),
+    h("ul",null, AREAS.map(a => h("li",{text:a.t}))),
+    h("p",{class:"note",style:"margin:8px 0 0",text:"La corrección automática compara palabras clave. Si te marcó mal una respuesta, cámbiala con «Corregir»."})));
+  function paintDev(box, g){ box.className = "devres " + (g.pts > 0 ? "p1" : g.pts < 0 ? "m1" : "p0"); }
+
+  function summary(){
+    const p2 = dv.reduce((s,g) => s + g.pts, 0), max = Q.length + 5, pts = Math.max(0, ok1 + p2), pct = pts/max, nt = nota(pct);
+    const mins = Math.max(1, Math.round((Date.now()-S.t0)/60000));
+    $("hd-pts").textContent = pts + " / " + max; $("hd-nota").textContent = fmt(nt,1);
+    const weak = Object.keys(byT).filter(t => byT[t][0] < byT[t][1]);
+    const txt = "Simulacro Solemne 1 · forma " + S.code + " · " + pts + "/" + max + " · nota " + fmt(nt,1) + " (exigencia 60%)\n"
+      + "Alternativas: " + ok1 + "/" + Q.length + " · Desarrollo: " + p2 + "/5 · " + mins + " min\n"
+      + (weak.length ? "Falló en: " + weak.map(t => t + " (" + byT[t][0] + "/" + byT[t][1] + ")").join(", ") : "Sin errores en alternativas")
+      + Q.map((q,i) => { const a = S.ans[i]; if (a === q.c) return "";
+          return "\n" + (i+1) + ". [" + q.tema + "] " + (q.stem || q.q) + (q.combo ? " " + q.items.map((it,j) => L[j] + ") " + it.t).join(" ") : "")
+            + "\n   marcó: " + (a == null ? "nada" : L[a] + ") " + q.opts[a]) + " · correcta: " + L[q.c] + ") " + q.opts[q.c]; }).join("");
+    const copy = h("button",{class:"btn",type:"button",text:"Copiar resultado"});
+    const pre = h("textarea",{readonly:true, rows:"8", style:"width:100%;margin-top:8px;font:400 .82rem var(--f-mono);background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:4px;padding:8px", hidden:true}, txt);
+    copy.addEventListener("click", () => {
+      const done = () => { copy.textContent = "Copiado"; };
+      const fallback = () => { pre.hidden = false; pre.select(); copy.textContent = "Selecciona y copia el texto"; };
+      try{ navigator.clipboard.writeText(txt).then(done, fallback); }catch(e){ fallback(); }
+    });
+    $("result-top").replaceChildren(h("div",{class:"result"},
+      h("h2",{text:"Nota " + fmt(nt,1)}),
+      h("div",{class:"stats"},
+        h("div",null, h("small",{text:"Puntaje"}), h("b",{text:pts + " / " + max})),
+        h("div",null, h("small",{text:"Alternativas"}), h("b",{text:ok1 + " / " + Q.length})),
+        h("div",null, h("small",{text:"Desarrollo"}), h("b",{text:(p2 > 0 ? "+" : "") + p2 + " / 5"})),
+        h("div",null, h("small",{text:"Tiempo"}), h("b",{text:mins + " min"}))),
+      h("ul",{class:"temas"}, Object.keys(byT).sort((a,b) => byT[a][0]/byT[a][1] - byT[b][0]/byT[b][1]).map(t => h("li",{class: byT[t][0] < byT[t][1] ? "weak" : ""}, h("span",{text:t}), h("span",{text:byT[t][0] + " / " + byT[t][1]})))),
+      h("p",{class:"note",text:"Nota referencial con exigencia de 60%: la escala real de la solemne no está en tus apuntes."}),
+      h("div",{class:"row"}, copy, h("button",{class:"btn pri",type:"button",text:"Otra forma",onclick:() => { store.del(KEY); location.reload(); }})), pre,
+      h("div",{class:"row",style:"margin-top:12px"},
+        h("span",{class:"note",text:"Revisar:"}),
+        h("button",{class:"btn",type:"button","aria-pressed":String(!$("p1").classList.contains("only-wrong")),text:"Todas las preguntas",onclick:e => { $("p1").classList.remove("only-wrong"); e.target.setAttribute("aria-pressed","true"); e.target.nextSibling.setAttribute("aria-pressed","false"); }}),
+        h("button",{class:"btn",type:"button","aria-pressed":String($("p1").classList.contains("only-wrong")),text:"Solo las que fallé (" + (Q.length - ok1) + ")",onclick:e => { $("p1").classList.add("only-wrong"); e.target.setAttribute("aria-pressed","true"); e.target.previousSibling.setAttribute("aria-pressed","false"); $("p1").scrollIntoView(); }}))));
+    const hs = store.get(HIST, []), rec = {fecha:today(), code:S.code, pts:pts, max:max, pct:pct, nota:nt, min:mins};
+    const last = hs[hs.length-1];
+    if (last && last.code === rec.code && last.fecha === rec.fecha && last.t0 === S.t0) hs[hs.length-1] = Object.assign(rec,{t0:S.t0}); else hs.push(Object.assign(rec,{t0:S.t0}));
+    store.set(HIST, hs.slice(-50));
+  }
+  summary();
+  store.del(KEY);
+  window.scrollTo(0,0);
+}
+$("btn-send").addEventListener("click", submit);
+$("btn-send2").addEventListener("click", submit);
+
+window.__s1 = { buildExam: buildExam, detectIng: detectIng, detectApp: detectApp, gradeDevFor: d => { const s = S; S = {dev:d}; const r = gradeDev(); S = s; return r; } };
+})();
+</script>
+</body>
+</html>
+<p style="text-align:center;margin:36px 16px 28px;font:500 15px system-ui,sans-serif"><a href="./" style="color:inherit">← Todas las herramientas</a></p>

@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="es">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrenador de Visión</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: barra de modo fija arriba, una tarjeta de ejercicio centrada, ancho máximo 760px */
+:root{
+  --bg:#f4f6f7;
+  --surface:#ffffff;
+  --surface-2:#e9edef;
+  --fg:#16211f;
+  --fg-dim:#5d6d6b;
+  --line:#d3dbdc;
+  --accent:#0d7a7a;
+  --accent-soft:#d3eceb;
+  --ok:#1b7a4b;
+  --ok-soft:#d6efe1;
+  --bad:#a8321f;
+  --bad-soft:#f7ddd8;
+  --display:"Space Grotesk",system-ui,sans-serif;
+  --body:"Inter",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#101716;
+    --surface:#18211f;
+    --surface-2:#212c2a;
+    --fg:#e8eeec;
+    --fg-dim:#93a5a2;
+    --line:#2d3a38;
+    --accent:#4ecdc4;
+    --accent-soft:#193330;
+    --ok:#5dd6a0;
+    --ok-soft:#14322a;
+    --bad:#ef8d79;
+    --bad-soft:#36211d;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101716;
+  --surface:#18211f;
+  --surface-2:#212c2a;
+  --fg:#e8eeec;
+  --fg-dim:#93a5a2;
+  --line:#2d3a38;
+  --accent:#4ecdc4;
+  --accent-soft:#193330;
+  --ok:#5dd6a0;
+  --ok-soft:#14322a;
+  --bad:#ef8d79;
+  --bad-soft:#36211d;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--fg);font-family:var(--body);
+  margin:0;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 48px;
+}
+.wrap{max-width:760px;margin:0 auto}
+
+header{padding-block:28px 18px;display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(1.4rem,4vw,1.9rem);margin:0;letter-spacing:-.02em}
+.count{font-family:var(--mono);font-size:.82rem;color:var(--fg-dim)}
+.count b{color:var(--accent);font-size:1.05rem}
+
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+nav button{
+  font-family:var(--body);font-size:.88rem;font-weight:500;
+  padding:8px 14px;border-radius:999px;border:1px solid var(--line);
+  background:var(--surface);color:var(--fg-dim);cursor:pointer;
+}
+nav button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600}
+nav button:focus-visible,.btn:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+.card h2{font-family:var(--display);font-size:1.05rem;margin:0 0 4px;font-weight:500}
+.hint{color:var(--fg-dim);font-size:.85rem;margin:0 0 16px}
+
+.grids{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start;margin-bottom:18px}
+.gblock{min-width:0}
+.glabel{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--fg-dim);margin-bottom:7px}
+table.m{border-collapse:collapse;font-family:var(--mono);font-size:.82rem;font-variant-numeric:tabular-nums}
+table.m td{
+  border:1px solid var(--line);width:40px;height:34px;text-align:center;
+  background:var(--surface-2);padding:0;
+}
+table.m td.pivot{background:var(--accent-soft);font-weight:600;color:var(--accent)}
+table.m.bin td{width:30px;height:28px;cursor:default}
+table.m.bin td.on{background:var(--fg);color:var(--bg)}
+table.m.pick td{cursor:pointer}
+table.m.pick td:hover{outline:2px solid var(--accent);outline-offset:-2px}
+table.m td.wrong{box-shadow:inset 0 0 0 3px var(--bad)}
+
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+label.f{font-size:.86rem;color:var(--fg-dim);min-width:168px}
+input[type=number],input[type=text]{
+  font-family:var(--mono);font-size:.9rem;padding:7px 10px;width:120px;
+  border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);
+}
+.btn{
+  font-family:var(--body);font-weight:600;font-size:.88rem;padding:9px 18px;border-radius:9px;
+  border:1px solid var(--accent);background:var(--accent);color:var(--bg);cursor:pointer;
+}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+
+.verdict{border-radius:10px;padding:13px 15px;margin-top:14px;font-size:.89rem;display:none}
+.verdict.show{display:block}
+.verdict.ok{background:var(--ok-soft);color:var(--ok)}
+.verdict.bad{background:var(--bad-soft);color:var(--bad)}
+.verdict b{font-weight:600}
+.steps{font-family:var(--mono);font-size:.78rem;margin-top:9px;white-space:pre-wrap;word-break:break-word;color:var(--fg-dim)}
+
+.opts{display:grid;gap:8px;margin:14px 0}
+.opt{
+  text-align:left;font-family:var(--body);font-size:.9rem;padding:11px 14px;
+  border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--fg);cursor:pointer;
+}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.correct{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:500}
+.opt.chosen-bad{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.opt:disabled{cursor:default}
+
+.meta{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:.78rem;color:var(--fg-dim);margin-bottom:10px}
+.tally{font-family:var(--mono);font-size:.78rem;color:var(--fg-dim);margin-top:4px}
+.scroll{overflow-x:auto;max-width:100%}
+footer{color:var(--fg-dim);font-size:.78rem;text-align:center;padding-top:8px}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Entrenador de Visión</h1>
+    <div class="count" id="count"></div>
+  </header>
+
+  <nav role="tablist">
+    <button role="tab" id="t-conv" aria-selected="true">Convolución</button>
+    <button role="tab" id="t-morf" aria-selected="false">Morfología</button>
+    <button role="tab" id="t-quiz" aria-selected="false">Teoría</button>
+  </nav>
+
+  <!-- ===== CONVOLUCIÓN ===== -->
+  <section id="s-conv">
+    <div class="card">
+      <h2 id="conv-title">Aplica la máscara</h2>
+      <p class="hint" id="conv-hint">Calcula la norma del kernel y el valor del píxel pivote.</p>
+      <div class="grids">
+        <div class="gblock">
+          <div class="glabel">Vecindario</div>
+          <div class="scroll"><table class="m" id="conv-img"></table></div>
+        </div>
+        <div class="gblock">
+          <div class="glabel">Kernel</div>
+          <div class="scroll"><table class="m" id="conv-k"></table></div>
+        </div>
+      </div>
+      <div class="row">
+        <label class="f" for="conv-norm">Norma del kernel</label>
+        <input type="number" id="conv-norm" inputmode="numeric">
+      </div>
+      <div class="row">
+        <label class="f" for="conv-val">Valor del píxel pivote</label>
+        <input type="number" id="conv-val" inputmode="numeric" step="any">
+      </div>
+      <div class="row">
+        <button class="btn" id="conv-check">Corregir</button>
+        <button class="btn ghost" id="conv-next">Otro ejercicio</button>
+      </div>
+      <div class="verdict" id="conv-verdict"></div>
+      <div class="tally" id="conv-tally"></div>
+    </div>
+  </section>
+
+  <!-- ===== MORFOLOGÍA ===== -->
+  <section id="s-morf" hidden>
+    <div class="card">
+      <h2 id="morf-title">Operación morfológica</h2>
+      <p class="hint">Elemento estructurante 3×3 de unos. Fuera de la matriz vale 0. Objeto = 1.
+        Haz clic en las celdas del resultado para encenderlas.</p>
+      <div class="grids">
+        <div class="gblock">
+          <div class="glabel">Original</div>
+          <div class="scroll"><table class="m bin" id="morf-src"></table></div>
+        </div>
+        <div class="gblock">
+          <div class="glabel">Tu resultado</div>
+          <div class="scroll"><table class="m bin pick" id="morf-ans"></table></div>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn" id="morf-check">Corregir</button>
+        <button class="btn ghost" id="morf-clear">Limpiar</button>
+        <button class="btn ghost" id="morf-next">Otro ejercicio</button>
+      </div>
+      <div class="verdict" id="morf-verdict"></div>
+      <div class="tally" id="morf-tally"></div>
+    </div>
+  </section>
+
+  <!-- ===== QUIZ ===== -->
+  <section id="s-quiz" hidden>
+    <div class="card" id="quiz-setup">
+      <h2>Cuestionario de alternativas</h2>
+      <p class="hint">Diez preguntas al azar del temario real. El cronómetro es opcional:
+        el profesor dijo que la prueba es fácil pero larga, así que vale la pena acostumbrarse.</p>
+      <div class="row">
+        <label class="f"><input type="checkbox" id="quiz-timed"> Cronometrado (60 s por pregunta)</label>
+      </div>
+      <button class="btn" id="quiz-start">Empezar</button>
+    </div>
+
+    <div class="card" id="quiz-play" hidden>
+      <div class="meta">
+        <span id="quiz-pos"></span>
+        <span id="quiz-timer"></span>
+      </div>
+      <h2 id="quiz-q"></h2>
+      <div class="opts" id="quiz-opts"></div>
+      <div class="verdict" id="quiz-verdict"></div>
+      <button class="btn" id="quiz-next" hidden>Siguiente</button>
+    </div>
+
+    <div class="card" id="quiz-done" hidden>
+      <h2 id="quiz-score"></h2>
+      <p class="hint" id="quiz-detail"></p>
+      <button class="btn" id="quiz-again">Otra ronda</button>
+    </div>
+  </section>
+
+  <footer id="foot">Material de estudio no oficial, hecho por un alumno a partir de las clases.</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- utilidades ---------- */
+var $ = function(id){ return document.getElementById(id); };
+var ri = function(a,b){ return a + Math.floor(Math.random()*(b-a+1)); };
+var pick = function(arr){ return arr[Math.floor(Math.random()*arr.length)]; };
+
+/* ---------- cuenta regresiva ---------- */
+(function(){
+  var exam = new Date(2026,10,27);              // 27 nov 2026
+  var today = new Date(); today.setHours(0,0,0,0);
+  var d = Math.round((exam - today)/86400000);
+  var el = $("count");
+  if (d > 1) el.innerHTML = "faltan <b>"+d+"</b> días para el examen";
+  else if (d === 1) el.innerHTML = "<b>mañana</b> es el examen";
+  else if (d === 0) el.innerHTML = "<b>hoy</b> es el examen";
+  else el.innerHTML = "examen rendido";
+})();
+
+/* ---------- registro en db ---------- */
+var dbNS = null, uid = null;
+var useCap = (window.claude && typeof window.claude.use === "function")
+  ? window.claude.use.bind(window.claude)
+  : function(){ return Promise.resolve(null); };
+
+useCap("db").then(function(d){
+  dbNS = d;
+  return useCap("user");
+}).then(function(u){
+  return u ? u.id() : null;
+}).then(function(id){ uid = id; }).catch(function(){ dbNS = null; });
+
+function registrar(tema, detalle, ok){
+  if (!dbNS) return;
+  var id = Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+  try{
+    dbNS.collection("intentos").doc(id).set({
+      tema: tema, detalle: detalle, correcto: !!ok,
+      fecha: new Date().toISOString(), quien: uid || "anon"
+    });
+  }catch(e){ /* el registro nunca interrumpe el estudio */ }
+}
+
+/* ---------- pestañas ---------- */
+var tabs = [["t-conv","s-conv"],["t-morf","s-morf"],["t-quiz","s-quiz"]];
+tabs.forEach(function(pair){
+  $(pair[0]).addEventListener("click", function(){
+    tabs.forEach(function(p){
+      var on = p[0] === pair[0];
+      $(p[0]).setAttribute("aria-selected", on ? "true" : "false");
+      $(p[1]).hidden = !on;
+    });
+  });
+});
+
+/* =======================================================
+   CONVOLUCIÓN
+   ======================================================= */
+var KERNELS = [
+  {n:"Sobel Gx",     k:[[-1,0,1],[-2,0,2],[-1,0,1]]},
+  {n:"Sobel Gy",     k:[[-1,-2,-1],[0,0,0],[1,2,1]]},
+  {n:"Prewitt Gx",   k:[[-1,0,1],[-1,0,1],[-1,0,1]]},
+  {n:"Prewitt Gy",   k:[[-1,-1,-1],[0,0,0],[1,1,1]]},
+  {n:"Media",        k:[[1,1,1],[1,1,1],[1,1,1]]},
+  {n:"Gaussiano",    k:[[1,2,1],[2,4,2],[1,2,1]]}
+];
+var convState = {ok:0, total:0};
+var conv = null;
+
+function drawMatrix(el, m, pivot){
+  var h = "";
+  for (var i=0;i<m.length;i++){
+    h += "<tr>";
+    for (var j=0;j<m[i].length;j++){
+      var isP = pivot && i===1 && j===1;
+      h += "<td class='"+(isP?"pivot":"")+"'>"+m[i][j]+"</td>";
+    }
+    h += "</tr>";
+  }
+  el.innerHTML = h;
+}
+
+function newConv(){
+  var ker = pick(KERNELS);
+  var img = [];
+  for (var i=0;i<3;i++){
+    var row = [];
+    for (var j=0;j<3;j++) row.push(ri(0,25)*10);
+    img.push(row);
+  }
+  var norma = 0, suma = 0;
+  for (var a=0;a<3;a++) for (var b=0;b<3;b++){
+    norma += ker.k[a][b];
+    suma  += ker.k[a][b] * img[a][b];
+  }
+  var valor = norma === 0 ? suma : suma / norma;
+  conv = {ker:ker, img:img, norma:norma, suma:suma, valor:valor};
+
+  $("conv-title").textContent = "Aplica " + ker.n;
+  $("conv-hint").textContent = norma === 0
+    ? "Cuidado con la norma antes de dividir."
+    : "Calcula la norma del kernel y el valor del píxel pivote.";
+  drawMatrix($("conv-img"), img, true);
+  drawMatrix($("conv-k"), ker.k, false);
+  $("conv-norm").value = "";
+  $("conv-val").value = "";
+  $("conv-verdict").className = "verdict";
+  $("conv-norm").focus();
+}
+
+function checkConv(){
+  if (!conv) return;
+  var vn = $("conv-norm").value.trim();
+  var vv = $("conv-val").value.trim();
+  if (vn === "" || vv === ""){
+    show($("conv-verdict"), false, "Faltan datos", "Completa la norma y el valor antes de corregir.");
+    return;
+  }
+  var okN = Number(vn) === conv.norma;
+  var okV = Math.abs(Number(vv) - conv.valor) < 0.51;
+  var ok = okN && okV;
+
+  var terms = [];
+  for (var a=0;a<3;a++) for (var b=0;b<3;b++){
+    if (conv.ker.k[a][b] !== 0) terms.push("("+conv.img[a][b]+")("+conv.ker.k[a][b]+")");
+  }
+  var pasos = "norma = " + conv.norma + "\n"
+            + "suma  = " + terms.join(" + ") + " = " + conv.suma + "\n"
+            + (conv.norma === 0
+                ? "norma 0 -> NO se divide (sería división por cero). Resultado = " + conv.suma
+                : "resultado = " + conv.suma + " / " + conv.norma + " = " + round2(conv.valor));
+  if (conv.valor < 0 || conv.valor > 255)
+    pasos += "\nfuera de 0-255 -> en la matriz completa habría que desplazar y escalar";
+
+  var titulo, msg;
+  if (ok){ titulo = "Correcto"; msg = "Norma " + conv.norma + ", resultado " + round2(conv.valor) + "."; }
+  else if (!okN && conv.norma === 0){
+    titulo = "La norma es 0";
+    msg = "Los kernels de bordes suman cero. No se normaliza: dividir sería división por cero.";
+  }
+  else if (!okN){ titulo = "Norma incorrecta"; msg = "La norma es la suma de todos los coeficientes: " + conv.norma + "."; }
+  else { titulo = "Valor incorrecto"; msg = "El resultado es " + round2(conv.valor) + "."; }
+
+  show($("conv-verdict"), ok, titulo, msg, pasos);
+  convState.total++; if (ok) convState.ok++;
+  $("conv-tally").textContent = convState.ok + " de " + convState.total + " en esta sesión";
+  registrar("convolucion", conv.ker.n, ok);
+}
+
+function round2(x){ return Math.round(x*100)/100; }
+
+function show(el, ok, titulo, msg, pasos){
+  el.className = "verdict show " + (ok ? "ok" : "bad");
+  el.innerHTML = "<b>"+titulo+".</b> " + msg + (pasos ? "<div class='steps'>"+pasos+"</div>" : "");
+}
+
+$("conv-check").addEventListener("click", checkConv);
+$("conv-next").addEventListener("click", newConv);
+
+/* =======================================================
+   MORFOLOGÍA
+   ======================================================= */
+var N = 7;
+var morf = null;
+var morfState = {ok:0,total:0};
+
+function nb(m,i,j){
+  var v = [];
+  for (var a=-1;a<=1;a++) for (var b=-1;b<=1;b++){
+    var y=i+a, x=j+b;
+    v.push((y>=0&&y<N&&x>=0&&x<N) ? m[y][x] : 0);
+  }
+  return v;
+}
+function erode(m){
+  var r=[];
+  for (var i=0;i<N;i++){ r.push([]); for (var j=0;j<N;j++) r[i].push(nb(m,i,j).every(function(v){return v===1;})?1:0); }
+  return r;
+}
+function dilate(m){
+  var r=[];
+  for (var i=0;i<N;i++){ r.push([]); for (var j=0;j<N;j++) r[i].push(nb(m,i,j).some(function(v){return v===1;})?1:0); }
+  return r;
+}
+var OPS = [
+  {n:"Erosión",    f:erode,                              d:"El píxel sobrevive solo si TODO el vecindario 3×3 es 1."},
+  {n:"Dilatación", f:dilate,                             d:"El píxel se enciende si ALGÚN vecino es 1."},
+  {n:"Apertura",   f:function(m){return dilate(erode(m));}, d:"Erosión y después dilatación. Borra motas por fuera."},
+  {n:"Cierre",     f:function(m){return erode(dilate(m));}, d:"Dilatación y después erosión. Tapa agujeros por dentro."}
+];
+
+function randomBinary(){
+  var m = [];
+  for (var i=0;i<N;i++){ m.push([]); for (var j=0;j<N;j++) m[i].push(0); }
+  // bloque principal
+  var h = ri(3,4), w = ri(3,4);
+  var r0 = ri(1,N-h-1), c0 = ri(1,N-w-1);
+  for (var a=r0;a<r0+h;a++) for (var b=c0;b<c0+w;b++) m[a][b]=1;
+  // agujero interno, a veces
+  if (h>=3 && w>=3 && Math.random()<0.55) m[r0+1][c0+1] = 0;
+  // mota aislada, a veces
+  if (Math.random()<0.6){
+    for (var t=0;t<14;t++){
+      var y=ri(0,N-1), x=ri(0,N-1);
+      if (nb(m,y,x).every(function(v){return v===0;})){ m[y][x]=1; break; }
+    }
+  }
+  return m;
+}
+
+function drawBin(el, m, clickable){
+  var h = "";
+  for (var i=0;i<N;i++){
+    h += "<tr>";
+    for (var j=0;j<N;j++) h += "<td data-i='"+i+"' data-j='"+j+"' class='"+(m[i][j]?"on":"")+"'>"+m[i][j]+"</td>";
+    h += "</tr>";
+  }
+  el.innerHTML = h;
+  if (clickable){
+    el.querySelectorAll("td").forEach(function(td){
+      td.addEventListener("click", function(){
+        var i=+td.dataset.i, j=+td.dataset.j;
+        morf.ans[i][j] = morf.ans[i][j] ? 0 : 1;
+        td.className = morf.ans[i][j] ? "on" : "";
+        td.textContent = morf.ans[i][j];
+      });
+    });
+  }
+}
+
+function newMorf(){
+  var op = pick(OPS);
+  var src = randomBinary();
+  var ans = [];
+  for (var i=0;i<N;i++){ ans.push([]); for (var j=0;j<N;j++) ans[i].push(0); }
+  morf = {op:op, src:src, sol:op.f(src), ans:ans};
+  $("morf-title").textContent = op.n;
+  drawBin($("morf-src"), src, false);
+  drawBin($("morf-ans"), ans, true);
+  $("morf-verdict").className = "verdict";
+}
+
+function checkMorf(){
+  if (!morf) return;
+  var bad = 0;
+  var cells = $("morf-ans").querySelectorAll("td");
+  cells.forEach(function(td){
+    var i=+td.dataset.i, j=+td.dataset.j;
+    td.classList.remove("wrong");
+    if (morf.ans[i][j] !== morf.sol[i][j]){ td.classList.add("wrong"); bad++; }
+  });
+  var ok = bad === 0;
+  if (ok){
+    show($("morf-verdict"), true, "Correcto", morf.op.n + ": " + morf.op.d);
+  } else {
+    show($("morf-verdict"), false, bad + (bad===1?" celda mal":" celdas mal"),
+      morf.op.d + " Las celdas marcadas en rojo son las que no calzan.");
+  }
+  morfState.total++; if (ok) morfState.ok++;
+  $("morf-tally").textContent = morfState.ok + " de " + morfState.total + " en esta sesión";
+  registrar("morfologia", morf.op.n, ok);
+}
+
+$("morf-check").addEventListener("click", checkMorf);
+$("morf-next").addEventListener("click", newMorf);
+$("morf-clear").addEventListener("click", function(){
+  if (!morf) return;
+  for (var i=0;i<N;i++) for (var j=0;j<N;j++) morf.ans[i][j]=0;
+  drawBin($("morf-ans"), morf.ans, true);
+  $("morf-verdict").className = "verdict";
+});
+
+/* =======================================================
+   QUIZ
+   ======================================================= */
+var BANK = [
+  {q:"¿Cuáles son las tres características de la percepción humana?",
+   o:["Subjetiva, selectiva y temporal","Objetiva, continua y universal","Directa, completa y estable","Sensorial, lógica y permanente"],
+   c:0, e:"Subjetiva porque depende de la experiencia, selectiva porque se percibe según intereses, temporal porque cambia con el tiempo."},
+  {q:"¿Cuál es el orden correcto de la cadena radiométrica?",
+   o:["Fuente de energía, medio, interacción con la materia, sensor","Sensor, medio, fuente, materia","Medio, fuente, sensor, materia","Materia, sensor, medio, fuente"],
+   c:0, e:"El profesor avisó en la Clase 7 que iba una pregunta de esto."},
+  {q:"Un cuerpo que absorbe toda la energía que le llega es un…",
+   o:["Cuerpo negro","Ventana ideal","Espejo","Cuerpo opaco"],
+   c:0, e:"La ventana ideal transmite todo, el espejo refleja todo, el opaco no deja pasar nada."},
+  {q:"La ventana ideal se caracteriza porque…",
+   o:["Transmite toda la energía sin atenuarla y no emite nada propio","Absorbe toda la energía","Refleja toda la energía","Emite energía propia"],
+   c:0, e:"Es un modelo ideal: no existe en la realidad."},
+  {q:"¿Qué diferencia a Sobel de Prewitt?",
+   o:["Sobel pondera con 2 la fila o columna central; Prewitt usa pesos uniformes","Sobel es 3×3 y Prewitt 2×2","Prewitt detecta diagonales y Sobel no","Sobel no se normaliza y Prewitt sí"],
+   c:0, e:"Los dos son 3×3. El de 2×2 es Roberts Cross."},
+  {q:"¿Cuál de estos operadores de bordes es de 2×2?",
+   o:["Roberts Cross","Prewitt","Sobel","Kirsch"],
+   c:0, e:"Roberts es el único que no es 3×3. Kirsch son ocho máscaras de 3×3."},
+  {q:"¿Por qué no se normaliza un kernel de bordes como Sobel?",
+   o:["Porque sus coeficientes suman cero y sería dividir por cero","Porque ya viene normalizado de fábrica","Porque la norma siempre vale 1","Porque se normaliza solo al final del proceso"],
+   c:0, e:"El profesor lo advirtió en la Clase 8 como posible pregunta."},
+  {q:"¿Cuántas máscaras usa el operador de Kirsch?",
+   o:["Ocho, una por dirección","Dos, una en x y otra en y","Cuatro, una por cuadrante","Una sola, rotada por el algoritmo"],
+   c:0, e:"Es un operador de brújula: se aplican las ocho y se toma la respuesta máxima."},
+  {q:"¿En qué paso de Canny el borde queda de un píxel de ancho?",
+   o:["Supresión de no máximos","Histéresis","Suavizado gaussiano","Cálculo del gradiente"],
+   c:0, e:"La histéresis decide qué bordes sobreviven; el adelgazamiento lo hace la supresión de no máximos."},
+  {q:"¿Para qué sirve la histéresis de Canny?",
+   o:["Conservar bordes débiles solo si se conectan con uno fuerte","Adelgazar el borde a un píxel","Eliminar el ruido antes de derivar","Calcular la dirección del gradiente"],
+   c:0, e:"Usa dos umbrales y evita que los bordes queden cortados."},
+  {q:"Tienes ruido sal y pimienta. ¿Qué filtro aplicas?",
+   o:["Mediana","Gaussiano","Media","Sobel"],
+   c:0, e:"El gaussiano es ineficaz contra el ruido impulsivo. La mediana ordena y el valor extremo nunca queda al medio."},
+  {q:"¿Por qué la mediana elimina el ruido impulsivo y la media no?",
+   o:["Porque ordena los valores y el extremo nunca queda en el centro","Porque usa un kernel más grande","Porque pondera los vecinos cercanos","Porque trabaja en el dominio de la frecuencia"],
+   c:0, e:"La media promedia y reparte el valor absurdo entre los vecinos."},
+  {q:"En el ruido sal y pimienta, ¿qué es la 'sal'?",
+   o:["Puntos blancos sobre fondo oscuro","Puntos negros sobre fondo claro","Franjas verticales","Un degradado de intensidad"],
+   c:0, e:"La pimienta son los puntos negros sobre fondo claro."},
+  {q:"El método de Otsu es…",
+   o:["Un umbral global calculado automáticamente del histograma","Un umbral distinto por cada región","Un filtro de suavizado","Un detector de bordes"],
+   c:0, e:"Es global: un solo umbral para toda la imagen, pero elegido solo en vez de a mano."},
+  {q:"¿Cuándo conviene la umbralización adaptativa en vez de Otsu?",
+   o:["Cuando la iluminación es dispareja, como en OCR con sombras","Cuando el histograma es bimodal","Cuando la imagen ya está binarizada","Cuando hay que detectar bordes"],
+   c:0, e:"La adaptativa calcula un umbral por región y sobrevive a la iluminación variable."},
+  {q:"¿Qué hace la apertura morfológica?",
+   o:["Elimina motas y salientes por fuera","Tapa agujeros internos","Engrosa todos los objetos","Detecta esquinas"],
+   c:0, e:"Apertura = erosión seguida de dilatación. El cierre es el que tapa agujeros."},
+  {q:"¿Qué hace el cierre morfológico?",
+   o:["Sella fisuras y agujeros internos","Borra las motas aisladas","Adelgaza los bordes","Calcula el gradiente"],
+   c:0, e:"Cierre = dilatación seguida de erosión."},
+  {q:"En la erosión con elemento estructurante 3×3 de unos, un píxel sobrevive si…",
+   o:["Todos los píxeles del vecindario son 1","Al menos uno del vecindario es 1","La mayoría son 1","El píxel central es 1"],
+   c:0, e:"Erosión es el AND; la dilatación es el OR."},
+  {q:"¿Qué detecta la transformada de Hough?",
+   o:["Líneas rectas y círculos","Esquinas","Regiones conexas","Niveles de ruido"],
+   c:0, e:"Las esquinas las detecta Harris; las regiones conexas son los blobs."},
+  {q:"¿Por qué Hough representa las rectas en coordenadas polares?",
+   o:["Porque las rectas verticales tendrían pendiente infinita","Porque es más rápido de calcular","Porque trabaja en color","Porque los círculos lo exigen"],
+   c:0, e:"Con y = mx + b las verticales romperían el método."},
+  {q:"¿Qué detecta el método de Harris?",
+   o:["Esquinas, donde la intensidad cambia en las dos direcciones","Líneas rectas","Círculos","Bordes de un píxel"],
+   c:0, e:"Usa una matriz de covarianza de gradientes; los dos autovalores grandes indican esquina."},
+  {q:"Un blob es…",
+   o:["Una región conexa de píxeles, filtrable por área o circularidad","Una línea recta detectada","Un píxel de ruido","Un tipo de kernel"],
+   c:0, e:"Se detecta sobre imagen binaria y se filtra por propiedades de forma."},
+  {q:"¿Qué sensor da mejor calidad de imagen y se usa en cámaras profesionales?",
+   o:["CCD","CMOS","LIDAR","SEM"],
+   c:0, e:"El CCD tiene un fotorreceptor por cada color en cada celda."},
+  {q:"El rango aproximado de la luz visible es…",
+   o:["400 a 700 nanómetros","40 a 70 nanómetros","4 a 7 micrómetros","400 a 700 micrómetros"],
+   c:0, e:"Bajo los 400 nm está el ultravioleta; sobre los 700 nm, el infrarrojo."},
+  {q:"Una transición de intensidad que salta y vuelve de inmediato es un…",
+   o:["Impulso, típico del ruido","Escalón, típico de un borde","Rampa, típica de un degradado","Plano, sin cambio"],
+   c:0, e:"El escalón salta y se queda; por eso es un borde real y el impulso es ruido."},
+  {q:"Si de blanco a blanco hay 4 píxeles, la frecuencia espacial es…",
+   o:["0,25 ciclos por píxel","4 ciclos por píxel","2 ciclos por píxel","No se puede calcular"],
+   c:0, e:"Frecuencia = 1 / período = 1/4."},
+  {q:"¿Cuál de estos temas quedó FUERA del examen?",
+   o:["SIFT y ORB","Transformada de Hough","Morfología matemática","Operadores de borde"],
+   c:0, e:"El profesor los excluyó en las Clases 10 y 11."},
+  {q:"¿Por qué no existe una foto 'en blanco y negro'?",
+   o:["Porque solo tendría dos valores; lo que hay es escala de grises","Porque siempre hay algo de color","Porque los sensores no lo permiten","Porque el ojo no lo distingue"],
+   c:0, e:"Blanco y negro puro es una imagen binaria: 1 y 0."}
+];
+
+var quiz = null;
+
+function shuffle(a){
+  a = a.slice();
+  for (var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+
+function startQuiz(){
+  var qs = shuffle(BANK).slice(0,10).map(function(item){
+    var idx = item.o.map(function(_,i){ return i; });
+    var order = shuffle(idx);
+    return {
+      q: item.q,
+      o: order.map(function(i){ return item.o[i]; }),
+      c: order.indexOf(item.c),
+      e: item.e
+    };
+  });
+  quiz = {qs:qs, i:0, ok:0, fails:[], timed:$("quiz-timed").checked, timer:null, left:0};
+  $("quiz-setup").hidden = true;
+  $("quiz-done").hidden = true;
+  $("quiz-play").hidden = false;
+  renderQ();
+}
+
+function renderQ(){
+  var q = quiz.qs[quiz.i];
+  $("quiz-pos").textContent = "Pregunta " + (quiz.i+1) + " de " + quiz.qs.length;
+  $("quiz-q").textContent = q.q;
+  $("quiz-verdict").className = "verdict";
+  $("quiz-next").hidden = true;
+  var box = $("quiz-opts");
+  box.innerHTML = "";
+  q.o.forEach(function(text, i){
+    var b = document.createElement("button");
+    b.className = "opt";
+    b.textContent = text;
+    b.addEventListener("click", function(){ answer(i); });
+    box.appendChild(b);
+  });
+  stopTimer();
+  if (quiz.timed){
+    quiz.left = 60;
+    $("quiz-timer").textContent = "60 s";
+    quiz.timer = setInterval(function(){
+      quiz.left--;
+      $("quiz-timer").textContent = quiz.left + " s";
+      if (quiz.left <= 0) answer(-1);
+    }, 1000);
+  } else {
+    $("quiz-timer").textContent = "";
+  }
+}
+
+function stopTimer(){ if (quiz && quiz.timer){ clearInterval(quiz.timer); quiz.timer = null; } }
+
+function answer(choice){
+  stopTimer();
+  var q = quiz.qs[quiz.i];
+  var ok = choice === q.c;
+  var btns = $("quiz-opts").querySelectorAll(".opt");
+  btns.forEach(function(b,i){
+    b.disabled = true;
+    if (i === q.c) b.classList.add("correct");
+    if (i === choice && !ok) b.classList.add("chosen-bad");
+  });
+  if (ok){ quiz.ok++; show($("quiz-verdict"), true, "Correcto", q.e); }
+  else {
+    quiz.fails.push(q.q);
+    show($("quiz-verdict"), false, choice === -1 ? "Se acabó el tiempo" : "Incorrecto", q.e);
+  }
+  registrar("teoria", q.q, ok);
+  $("quiz-next").hidden = false;
+  $("quiz-next").textContent = (quiz.i === quiz.qs.length-1) ? "Ver resultado" : "Siguiente";
+}
+
+$("quiz-start").addEventListener("click", startQuiz);
+$("quiz-again").addEventListener("click", function(){
+  $("quiz-done").hidden = true;
+  $("quiz-setup").hidden = false;
+});
+$("quiz-next").addEventListener("click", function(){
+  if (quiz.i === quiz.qs.length-1){
+    stopTimer();
+    $("quiz-play").hidden = true;
+    $("quiz-done").hidden = false;
+    var nota = Math.round((quiz.ok/quiz.qs.length)*60 + 10)/10;
+    $("quiz-score").textContent = quiz.ok + " de " + quiz.qs.length + "  ·  nota aproximada " + nota.toFixed(1);
+    $("quiz-detail").textContent = quiz.fails.length
+      ? "Falladas: " + quiz.fails.join("  ·  ")
+      : "Ronda perfecta.";
+  } else {
+    quiz.i++;
+    renderQ();
+  }
+});
+
+/* arranque */
+newConv();
+newMorf();
+})();
+</script>
+<p style="text-align:center;margin:36px 16px 28px;font:500 15px system-ui,sans-serif"><a href="./" style="color:inherit">← Todas las herramientas</a></p>
